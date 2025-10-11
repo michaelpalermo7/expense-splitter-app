@@ -19,3 +19,14 @@ export interface Group {
   name: string;
   createdAt: string;
 }
+
+export interface GroupMember {
+  id: number;
+  userId: number;
+  groupId: number;
+  role: string;
+}
+
+export interface MemberWithName extends GroupMember {
+  userName: string;
+}

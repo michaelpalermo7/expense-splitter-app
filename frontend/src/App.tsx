@@ -4,6 +4,8 @@ import GroupListPage from "./pages/Groups/GroupListPage";
 import GroupAddPage from "./pages/Groups/GroupAddPage";
 
 import "./index.css";
+import GroupInfoPage from "./pages/GroupDetail/GroupInfoPage";
+import MemberAddPage from "./pages/GroupDetail/MemberAddPage";
 
 function App() {
   return (
@@ -11,11 +13,13 @@ function App() {
       {/* http://localhost:5173 */}
       <Route path="/" element={<GroupListPage />} />
 
-      {/* http://localhost:5173/groups */}
       <Route path="/groups" element={<GroupListPage />} />
 
-      {/* http://localhost:5173/add-group */}
       <Route path="/add-group" element={<GroupAddPage />} />
+
+      <Route path="/group-info/:id" element={<GroupInfoPage />} />
+
+      <Route path="/add-member" element={<MemberAddPage />} />
     </Routes>
   );
 }

@@ -53,10 +53,10 @@ public class GroupController {
 
     @DeleteMapping("/{id}/members/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void removeMember(@PathVariable("id") Long groupId, @PathVariable("userId") Long targetUserId,
-            @RequestParam("requesterId") Long requesterUserId) throws NotFoundException, AccessDeniedException {
+    public void removeMember(@PathVariable("id") Long groupId, @PathVariable("userId") Long targetUserId)
+            throws NotFoundException, AccessDeniedException {
 
-        groupService.removeMember(requesterUserId, targetUserId, groupId);
+        groupService.removeMember(targetUserId, groupId);
     }
 
     @GetMapping("/{id}/members")
@@ -68,4 +68,10 @@ public class GroupController {
     public List<GroupDTO> listAllGroups() {
         return groupService.listAllGroups();
     }
+
+    @GetMapping("/{id}")
+    public GroupDTO getGroupById(@PathVariable Long id) throws NotFoundException {
+        return groupService.getGroupById(id);
+    }
+
 }

@@ -110,7 +110,7 @@ public class GroupService {
      * @throws AccessDeniedException if requesting user is a member and not an admin
      */
     @Transactional
-    public void removeMember(Long requesterUserId, Long targetUserId, Long groupId)
+    public void removeMember(Long targetUserId, Long groupId)
             throws NotFoundException, AccessDeniedException {
 
         // verify group exists
@@ -118,11 +118,18 @@ public class GroupService {
             throw new NotFoundException();
         }
 
-        // ensure requester is admin
-        var requesterMembership = membershipRepository.findByUser_UserIdAndGroup_GroupId(requesterUserId, groupId);
-        if (requesterMembership.isEmpty() || requesterMembership.get().getRole() != Membership.Role.ADMIN) {
-            throw new AccessDeniedException("Only admins can remove members");
-        }
+        /*
+         * Logic for when auth exists
+         * 
+         * // ensure requester is admin
+         * var requesterMembership =
+         * membershipRepository.findByUser_UserIdAndGroup_GroupId(requesterUserId,
+         * groupId);
+         * if (requesterMembership.isEmpty() || requesterMembership.get().getRole() !=
+         * Membership.Role.ADMIN) {
+         * throw new AccessDeniedException("Only admins can remove members");
+         * }
+         */
 
         // ensure target membership exists
         var targetMembership = membershipRepository.findByUser_UserIdAndGroup_GroupId(targetUserId, groupId);
