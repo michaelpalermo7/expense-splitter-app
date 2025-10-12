@@ -36,7 +36,7 @@ export function useGroupInfo(id?: string) {
     if (!id) return;
     await deleteGroupMember(Number(id), userId);
 
-    // remove the member by userId (not membership id)
+    // remove the member by userId
     const updatedMembers = members.filter((m) => m.userId !== userId);
     setMembers(updatedMembers);
   };

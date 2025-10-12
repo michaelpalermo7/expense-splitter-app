@@ -1,27 +1,25 @@
 import type { FormEvent } from "react";
-import ExpenseAddForm, {
-  type ExpenseAddFormValues,
-} from "../../components/ExpenseAddForm";
+import type { SettlementAddFormValues } from "../../components/SettlementAddForm";
 import { useNavigate, useParams } from "react-router-dom";
-import { addGroupExpense } from "../../services/ExpenseService";
+import SettlementAddForm from "../../components/SettlementAddForm";
+import { addGroupSettlement } from "../../services/ExpenseService";
 
-const ExpenseAddPage = () => {
+const SettlementAddPage = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const groupId = Number(id);
 
   const handleCreate = async (
-    values: ExpenseAddFormValues,
+    values: SettlementAddFormValues,
     _e: FormEvent<HTMLFormElement>
   ) => {
-    const { payerEmail, amount, currency, description, occurredAt } = values;
+    const { payerEmail, payeeEmail, amount, currency } = values;
 
-    await addGroupExpense(groupId, {
+    await addGroupSettlement(groupId, {
       payerEmail,
+      payeeEmail,
       amount,
       currency,
-      description,
-      occurredAt,
     });
 
     navigate(`/group-info/${groupId}`);
@@ -35,9 +33,9 @@ const ExpenseAddPage = () => {
         <div className="w-full md:w-1/2 bg-white">
           <div className="p-6">
             <h2 className="text-center text-2xl font-semibold mb-6">
-              Add Expense
+              Add Settlement
             </h2>
-            <ExpenseAddForm onSubmit={handleCreate} />
+            <SettlementAddForm onSubmit={handleCreate} />
           </div>
         </div>
       </div>
@@ -45,4 +43,4 @@ const ExpenseAddPage = () => {
   );
 };
 
-export default ExpenseAddPage;
+export default SettlementAddPage;

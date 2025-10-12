@@ -13,12 +13,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.fairshare.fairshare.dto.BalanceDTO;
 import com.fairshare.fairshare.dto.CreateExpenseRequest;
 import com.fairshare.fairshare.dto.CreateSettlementRequest;
 import com.fairshare.fairshare.dto.ExpenseDTO;
 import com.fairshare.fairshare.dto.SettlementDTO;
+import com.fairshare.fairshare.repository.UserRepository;
 import com.fairshare.fairshare.service.ExpenseService;
 
 import jakarta.validation.Valid;
@@ -30,9 +32,11 @@ import jakarta.validation.Valid;
 public class ExpenseController {
 
     private final ExpenseService expenseService;
+    private final UserRepository userRepository;
 
-    public ExpenseController(ExpenseService expenseService) {
+    public ExpenseController(ExpenseService expenseService, UserRepository userRepository) {
         this.expenseService = expenseService;
+        this.userRepository = userRepository;
     }
 
     @PostMapping("/expenses")
@@ -41,10 +45,18 @@ public class ExpenseController {
     public ExpenseDTO createExpense(
             @PathVariable Long groupId,
             @RequestBody @Valid CreateExpenseRequest request) throws Exception {
-        // TODO: input normalization (trim description, etc.)
+
+        // were given email, translate to user ID for service
+        var payer = userRepository.findByUserEmail(request.payerEmail())
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "User not found for email: " + request.payerEmail()));
+
+        Long payerId = payer.getUserId();
+
         return expenseService.createExpense(
                 groupId,
-                request.payerId(),
+                payerId,
                 request.amount(),
                 request.currency(),
                 request.description(),
@@ -70,12 +82,29 @@ public class ExpenseController {
     public SettlementDTO createSettlement(
             @PathVariable Long groupId,
             @RequestBody @Valid CreateSettlementRequest request) throws Exception {
+
+        // Look up payer
+        var payer = userRepository.findByUserEmail(request.payerEmail())
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "User not found for email: " + request.payerEmail()));
+
+        // Look up payee
+        var payee = userRepository.findByUserEmail(request.payeeEmail())
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "User not found for email: " + request.payeeEmail()));
+
+        Long payerId = payer.getUserId();
+        Long payeeId = payee.getUserId();
+
         return expenseService.createSettlement(
                 groupId,
-                request.payerId(),
-                request.payeeId(),
+                payerId,
+                payeeId,
                 request.amount(),
                 request.currency());
     }
 
+    // TODO: Get group settlement history
 }

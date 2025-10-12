@@ -1,10 +1,17 @@
 import { useNavigate } from "react-router-dom";
 import GroupTable from "../../components/GroupTable";
 import { useGroups } from "../../hooks/useGroup";
+import { deleteGroup } from "../../services/GroupService";
+import { useEffect, useState } from "react";
 
 const GroupList = () => {
   const { groups } = useGroups();
   const navigate = useNavigate();
+  const [rows, setRows] = useState(groups);
+
+  useEffect(() => {
+    setRows(groups);
+  }, [groups]);
 
   //direct to add page
   const addNewGroup = () => {
@@ -16,16 +23,17 @@ const GroupList = () => {
     navigate(`/group-info/${id}`);
   };
 
-  const deleteGroup = (_id: number) => {
-    //TODO: Group deletion frontend call to api
+  const handleDeleteGroup = async (id: number) => {
+    await deleteGroup(id);
+    setRows((prev) => prev.filter((g) => g.id !== id));
   };
 
   return (
     <GroupTable
-      groups={groups}
+      groups={rows}
       onAdd={addNewGroup}
       onInfo={groupInfo}
-      onDelete={deleteGroup}
+      onDelete={handleDeleteGroup}
     />
   );
 };

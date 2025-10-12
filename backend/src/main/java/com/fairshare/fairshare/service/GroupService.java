@@ -208,29 +208,33 @@ public class GroupService {
      * @throws AccessDeniedException
      */
     @Transactional
-    public void deleteGroup(Long groupId, Long requestingUserId) throws NotFoundException, AccessDeniedException {
+    public void deleteGroup(Long groupId) throws NotFoundException {
 
-        // throw not found if group does not exist
-        if (!(groupRepository.findById(groupId).isPresent())) {
-            throw new NotFoundException();
-        }
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(NotFoundException::new);
 
-        // find the corresponding membership between the user and the group
-        var membershipOpt = membershipRepository.findByUser_UserIdAndGroup_GroupId(requestingUserId, groupId);
+        /*
+         * Logic when auth is in place
+         * 
+         * // find the corresponding membership between the user and the group
+         * var membershipOpt =
+         * membershipRepository.findByUser_UserIdAndGroup_GroupId(requestingUserId,
+         * groupId);
+         * 
+         * // if no membership, deny deletion
+         * if (membershipOpt.isEmpty()) {
+         * throw new AccessDeniedException("User is not a member of the group");
+         * }
+         * 
+         * var membership = membershipOpt.get();
+         * 
+         * // if user is not an admin, deny deletion
+         * if (membership.getRole() != Membership.Role.ADMIN) {
+         * throw new AccessDeniedException("Only admins can delete groups");
+         * }
+         * 
+         */
 
-        // if no membership, deny deletion
-        if (membershipOpt.isEmpty()) {
-            throw new AccessDeniedException("User is not a member of the group");
-        }
-
-        var membership = membershipOpt.get();
-
-        // if user is not an admin, deny deletion
-        if (membership.getRole() != Membership.Role.ADMIN) {
-            throw new AccessDeniedException("Only admins can delete groups");
-        }
-
-        var group = groupRepository.findById(groupId).orElseThrow(NotFoundException::new);
         groupRepository.delete(group);
     }
 

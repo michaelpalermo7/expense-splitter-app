@@ -96,7 +96,7 @@ public class ExpenseService {
 
         Expense saved = expenseRepository.save(e);
 
-        var members = membershipRepository.findByGroup_GroupId(groupId);
+        List<Membership> members = membershipRepository.findByGroup_GroupId(groupId);
         if (members.isEmpty()) {
             throw new IllegalStateException("Cannot split expense: no members in group");
         }
@@ -294,4 +294,5 @@ public class ExpenseService {
                 saved.getSettledAt());
     }
 
+    // TODO: Get group settlements
 }

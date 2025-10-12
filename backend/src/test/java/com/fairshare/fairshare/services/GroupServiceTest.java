@@ -1,6 +1,5 @@
 package com.fairshare.fairshare.services;
 
-import java.nio.file.AccessDeniedException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -108,30 +107,51 @@ public class GroupServiceTest {
         /**
          * Test that a member cannot delete a group
          * 
+         * @Test
+         *       void deleteGroup_whenRequesterNotAdmin() throws Exception {
+         *       Long groupId = 1L;
+         *       Long memberId = 20L;
+         * 
+         *       Group g = new Group();
+         *       g.setGroupId(groupId);
+         * 
+         *       Membership member = new Membership();
+         *       member.setUser(new User());
+         *       member.setGroup(g);
+         *       // user not an admin
+         *       member.setRole(Membership.Role.MEMBER);
+         * 
+         *       when(groupRepository.findById(groupId)).thenReturn(Optional.of(g));
+         *       when(membershipRepository.findByUser_UserIdAndGroup_GroupId(memberId,
+         *       groupId))
+         *       .thenReturn(Optional.of(member));
+         * 
+         *       assertThrows(AccessDeniedException.class,
+         *       () -> groupService.deleteGroup(groupId));
+         * 
+         *       verify(groupRepository, never()).deleteById(groupId);
+         *       }
+         * 
          * @throws Exception if error occurs
          */
-        @Test
-        void deleteGroup_whenRequesterNotAdmin() throws Exception {
-                Long groupId = 1L;
-                Long memberId = 20L;
 
+        /**
+         * Test deleting a group when it exists
+         */
+        /**
+         * Test deleting a group when it exists -> deleteById is called
+         */
+        @Test
+        void deleteGroup_whenGroupExists_deletes() throws Exception {
+                Long groupId = 1L;
                 Group g = new Group();
                 g.setGroupId(groupId);
 
-                Membership member = new Membership();
-                member.setUser(new User());
-                member.setGroup(g);
-                // user not an admin
-                member.setRole(Membership.Role.MEMBER);
+                when(groupRepository.findById(groupId)).thenReturn(java.util.Optional.of(g));
 
-                when(groupRepository.findById(groupId)).thenReturn(Optional.of(g));
-                when(membershipRepository.findByUser_UserIdAndGroup_GroupId(memberId, groupId))
-                                .thenReturn(Optional.of(member));
+                groupService.deleteGroup(groupId);
 
-                assertThrows(AccessDeniedException.class,
-                                () -> groupService.deleteGroup(groupId, memberId));
-
-                verify(groupRepository, never()).deleteById(groupId);
+                verify(groupRepository).delete(g); // verify delete(entity)
         }
 
         /**
