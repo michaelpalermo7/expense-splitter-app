@@ -2,6 +2,7 @@ import type {
   Balance,
   Expense,
   ExpenseCreate,
+  Settlement,
   SettlementCreate,
 } from "../types";
 import { api } from "./client";
@@ -25,4 +26,9 @@ export function addGroupExpense(groupId: number, data: ExpenseCreate) {
 
 export function addGroupSettlement(groupId: number, data: SettlementCreate) {
   return api.post(`/groups/${groupId}/settlements`, data);
+}
+
+export async function getGroupSettlements(groupId: number) {
+  const res = api.get<Settlement[]>(`/groups/${groupId}/settlements`);
+  return (await res).data;
 }

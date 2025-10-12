@@ -1,7 +1,7 @@
 import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import GroupForm, { type GroupFormValues } from "../../components/GroupForm";
-import { createUser } from "../../services/UserService";
+import { createUser, getUserByEmail } from "../../services/UserService";
 import { createGroup } from "../../services/GroupService";
 
 const GroupAddPage = () => {
@@ -13,16 +13,24 @@ const GroupAddPage = () => {
   ) => {
     const { userName, userEmail, name } = values;
 
-    // create user, and get response data that has user id
-    const { data: newUser } = await createUser({
-      userName,
-      userEmail,
-    });
+    let creatorUserId: number;
+
+    //see if user exists, if not create them
+    try {
+      const res = await getUserByEmail(userEmail);
+      creatorUserId = res.data.userId;
+    } catch (err: any) {
+      if (err?.response?.status !== 404) {
+        throw err;
+      }
+      const created = await createUser({ userName, userEmail });
+      creatorUserId = created.data.userId;
+    }
 
     // use that new user id to create a group with that user in it as admin
     await createGroup({
       name,
-      creatorUserId: newUser.userId,
+      creatorUserId,
     });
 
     navigate("/groups");

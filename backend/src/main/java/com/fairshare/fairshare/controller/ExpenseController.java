@@ -106,5 +106,9 @@ public class ExpenseController {
                 request.currency());
     }
 
-    // TODO: Get group settlement history
+    @GetMapping("/settlements")
+    @Transactional(readOnly = true)
+    public List<SettlementDTO> listSettlements(@PathVariable Long groupId) throws Exception {
+        return expenseService.listGroupSettlements(groupId);
+    }
 }

@@ -10,7 +10,12 @@ const FormButton = ({ label, onClick }: FormButtonProps) => {
     <button
       type="submit"
       onClick={onClick}
-      className="cursor-pointer bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+      className="cursor-pointer inline-flex items-center gap-2
+                     bg-black text-white border border-black
+                     hover:bg-transparent hover:text-black
+                     focus:ring-4 focus:outline-none focus:ring-gray-400
+                     font-medium rounded-lg text-sm px-5 py-2.5
+                     transition-all duration-200"
     >
       {label}
     </button>

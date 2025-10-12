@@ -76,3 +76,13 @@ export type SettlementCreate = {
   amount: number;
   currency: string;
 };
+
+export type Settlement = {
+  id: number;
+  groupId: number;
+  payerId: number;
+  payeeId: number;
+  amount: number;
+  currency: string;
+  settledAt: string;
+};

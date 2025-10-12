@@ -294,5 +294,30 @@ public class ExpenseService {
                 saved.getSettledAt());
     }
 
-    // TODO: Get group settlements
+    /**
+     * returns a list of settlements for a group
+     * 
+     * @param groupId to find settlements of
+     * @return list of settlement dtos
+     * @throws NotFoundException if group doesnt exist
+     */
+    @Transactional(readOnly = true)
+    public List<SettlementDTO> listGroupSettlements(Long groupId) throws NotFoundException {
+        if (!groupRepository.existsById(groupId)) {
+            throw new NotFoundException();
+        }
+
+        return settlementRepository
+                .findByGroup_GroupIdOrderBySettledAtDesc(groupId)
+                .stream()
+                .map(s -> new SettlementDTO(
+                        s.getSettlementId(),
+                        s.getPayer().getUserId(),
+                        s.getPayee().getUserId(),
+                        s.getGroup().getGroupId(),
+                        s.getAmount(),
+                        s.getCurrency(),
+                        s.getSettledAt()))
+                .toList();
+    }
 }

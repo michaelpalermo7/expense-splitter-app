@@ -1,5 +1,8 @@
 import type { Group } from "../types";
 import { fmtDate } from "../utils/date";
+import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import AddIcon from "@mui/icons-material/Add";
 
 type GroupsTableProps = {
   groups: Group[];
@@ -10,67 +13,96 @@ type GroupsTableProps = {
 
 const GroupsTable = ({ groups, onAdd, onInfo, onDelete }: GroupsTableProps) => {
   return (
-    <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-white">
-      <h2 className="text-3xl font-semibold text-gray-800 p-4">
-        List Of Groups
-      </h2>
+    <div className="relative overflow-x-auto shadow-sm sm:rounded-lg bg-white hover:shadow-md">
+      <h2 className="text-2xl font-semibold  text-center p-4">Your Groups</h2>
 
-      <button
-        type="button"
-        onClick={onAdd}
-        className="cursor-pointer float-left text-white bg-blue-700 hover:bg-blue-800 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
-      >
-        Add Group
-      </button>
+      <div className="mb-1 pb-2 flex justify-start">
+        <button
+          type="button"
+          onClick={onAdd}
+          className="cursor-pointer inline-flex items-center gap-2
+                     bg-black text-white border border-black
+                     hover:bg-transparent hover:text-black
+                     focus:ring-4 focus:outline-none focus:ring-gray-400
+                     font-medium rounded-lg text-sm px-5 py-2.5
+                     transition-all duration-200"
+        >
+          <AddIcon fontSize="small" />
+          Add Group
+        </button>
+      </div>
 
-      <table className="w-full text-lg text-left rtl:text-right text-gray-700">
-        <thead className="text-md text-gray-800 uppercase bg-gray-100">
+      <table className="w-full table-fixed text-lg text-left text-gray-700">
+        <colgroup>
+          <col className="w-1/4" />
+          <col className="w-1/4" />
+          <col className="w-1/4" />
+          <col className="w-1/4" />
+        </colgroup>
+
+        <thead className="text-md text-white uppercase bg-black">
           <tr>
-            <th scope="col" className="px-6 py-3">
+            <th className="px-6 py-3 text-xs tracking-wide opacity-90 font-normal">
               Group Id
             </th>
-            <th scope="col" className="px-6 py-3">
+            <th className="px-6 py-3 text-xs tracking-wide opacity-90 font-normal">
               Group Name
             </th>
-            <th scope="col" className="px-6 py-3">
+            <th className="px-6 py-3 text-xs tracking-wide opacity-90 font-normal">
               Group Created At
             </th>
-            <th scope="col" className="px-6 py-3">
+            <th className="px-6 py-3 text-xs tracking-wide opacity-90 text-right font-normal">
               Actions
             </th>
           </tr>
         </thead>
 
-        <tbody>
-          {groups.map((group, index) => (
-            <tr
-              key={group.id}
-              className={`${index % 2 === 0 ? "bg-white" : "bg-gray-100"} border-none`}
-            >
-              <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
-                {group.id}
-              </td>
-              <td className="px-6 py-4">{group.name}</td>
-              <td className="px-6 py-4">{fmtDate(group.createdAt)}</td>
-              <td className="px-6 py-4 space-x-2">
-                <button
-                  type="button"
-                  onClick={() => onInfo(group.id)}
-                  className="cursor-pointer text-blue-700 hover:text-white border border-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 dark:border-blue-500 dark:text-blue-500 dark:hover:text-white dark:hover:bg-blue-500 dark:focus:ring-blue-800"
-                >
-                  Info
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => onDelete(group.id)}
-                  className="cursor-pointer text-red-700 hover:text-white border border-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 dark:border-red-500 dark:text-red-500 dark:hover:text-white dark:hover:bg-red-600 dark:focus:ring-red-900"
-                >
-                  Delete
-                </button>
+        <tbody className="text-[15px]">
+          {groups.length === 0 ? (
+            <tr className="bg-white">
+              <td className="px-6 py-6 text-gray-500" colSpan={4}>
+                No groups yet.
               </td>
             </tr>
-          ))}
+          ) : (
+            groups.map((group) => (
+              <tr key={group.id} className="bg-white border-none">
+                <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
+                  {group.id}
+                </td>
+                <td className="px-6 py-4">
+                  <span className="block truncate text-gray-700 font-medium">
+                    {group.name}
+                  </span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {fmtDate(group.createdAt)}
+                </td>
+                <td className="px-6 py-4">
+                  <div className="flex items-center justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => onInfo(group.id)}
+                      title="Info"
+                      aria-label="Info"
+                      className="cursor-pointer inline-flex items-center gap-2 text-blue-700 border border-blue-700 hover:bg-blue-800 hover:text-white focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-3 py-1.5 transition-colors"
+                    >
+                      <InfoOutlinedIcon fontSize="small" />
+                      View
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onDelete(group.id)}
+                      className="cursor-pointer inline-flex items-center gap-2 rounded-lg border border-red-700 px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-700 hover:text-white focus:outline-none focus:ring-4 focus:ring-red-300 transition-colors"
+                    >
+                      <DeleteForeverIcon fontSize="small" />
+                      Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))
+          )}
         </tbody>
       </table>
     </div>

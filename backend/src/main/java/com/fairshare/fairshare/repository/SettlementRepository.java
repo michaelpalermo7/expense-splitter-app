@@ -10,4 +10,6 @@ import com.fairshare.fairshare.entity.Settlement;
 @Repository
 public interface SettlementRepository extends JpaRepository<Settlement, Long> {
     List<Settlement> findByGroup_GroupId(Long groupId);
+
+    List<Settlement> findByGroup_GroupIdOrderBySettledAtDesc(Long groupId);
 }

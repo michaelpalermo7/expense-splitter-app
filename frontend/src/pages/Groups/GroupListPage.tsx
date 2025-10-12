@@ -13,12 +13,10 @@ const GroupList = () => {
     setRows(groups);
   }, [groups]);
 
-  //direct to add page
   const addNewGroup = () => {
     navigate("/add-group");
   };
 
-  //direct to info page
   const groupInfo = (id: number) => {
     navigate(`/group-info/${id}`);
   };

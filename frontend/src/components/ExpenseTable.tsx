@@ -7,57 +7,65 @@ type ExpensesListProps = {
 };
 
 const ExpensesList = ({ expenses, nameById }: ExpensesListProps) => {
+  if (expenses.length === 0) {
+    return <p className="text-gray-500">No expenses yet.</p>;
+  }
+
   return (
-    <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-white">
-      <table className="w-full text-lg text-left rtl:text-right text-gray-700">
-        <thead className="text-md text-gray-800 uppercase bg-gray-100">
+    <div className="relative overflow-x-auto shadow-sm sm:rounded-lg bg-white hover:shadow-md">
+      <table className="w-full text-lg text-left text-gray-700">
+        {/* Header of table */}
+        <thead className="text-md text-white uppercase bg-black">
           <tr>
-            <th scope="col" className="px-6 py-3">
+            <th
+              scope="col"
+              className="px-6 py-3 text-xs uppercase tracking-wide opacity-90 font-normal"
+            >
               Description
             </th>
-            <th scope="col" className="px-6 py-3">
+            <th
+              scope="col"
+              className="px-6 py-3 text-xs uppercase tracking-wide opacity-90 font-normal"
+            >
               Amount
             </th>
-            <th scope="col" className="px-6 py-3">
+            <th
+              scope="col"
+              className="px-6 py-3 text-xs uppercase tracking-wide opacity-90 font-normal"
+            >
               Occurred At
             </th>
-            <th scope="col" className="px-6 py-3">
+            <th
+              scope="col"
+              className="px-6 py-3 text-xs uppercase tracking-wide opacity-90 font-normal"
+            >
               Paid By
             </th>
           </tr>
         </thead>
 
         <tbody>
-          {expenses.length === 0 ? (
-            <tr className="bg-white">
-              <td className="px-6 py-6 text-gray-500" colSpan={4}>
-                No expenses yet.
+          {expenses.map((e) => (
+            <tr key={e.id} className="bg-white border-none">
+              <td className="px-6 py-4">
+                <span className="block truncate text-gray-700 font-medium">
+                  {e.description || "Untitled expense"}
+                </span>
+              </td>
+
+              <td className="px-6 py-4">
+                <span className="inline-block rounded-full px-3 py-1 text-sm font-semibold tabular-nums bg-blue-50 text-blue-700">
+                  ${Number(e.amount).toFixed(2)}
+                </span>
+              </td>
+
+              <td className="px-6 py-4">{fmtDate(e.occurredAt)}</td>
+
+              <td className="px-6 py-4">
+                {nameById[e.payerId] ?? `User ${e.payerId}`}
               </td>
             </tr>
-          ) : (
-            expenses.map((e, index) => (
-              <tr
-                key={e.id}
-                className={`${
-                  index % 2 === 0 ? "bg-white" : "bg-gray-100"
-                } border-none`}
-              >
-                <td className="px-6 py-4">
-                  <span className="block truncate">
-                    {e.description || "Untitled expense"}
-                  </span>
-                </td>
-
-                <td className="px-6 py-4">${e.amount}</td>
-
-                <td className="px-6 py-4">{fmtDate(e.occurredAt)}</td>
-
-                <td className="px-6 py-4">
-                  {nameById[e.payerId] ?? `User ${e.payerId}`}
-                </td>
-              </tr>
-            ))
-          )}
+          ))}
         </tbody>
       </table>
     </div>
