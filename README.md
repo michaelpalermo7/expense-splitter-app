@@ -41,7 +41,8 @@ The **Expense Splitter App** allows users to log shared expenses and automatical
 - **Framework:** Spring Boot 3 (RESTful API)
 - **Persistence:** Spring Data JPA with Hibernate ORM  
 - **Database:** PostgreSQL  
-- **Migrations:** Managed with Flyway  
+- **Migrations:** Managed with Flyway
+- **Testing** JUnit 5 for unit testing + Spring Boot Test for integration testing
 - **Build Tool:** Maven  
 - **Deployed on:** Render (Dockerized service)
 
