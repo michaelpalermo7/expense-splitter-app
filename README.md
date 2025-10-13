@@ -37,6 +37,14 @@ The **Expense Splitter App** allows users to log shared expenses and automatical
 | **Version Control** | Git + GitHub | 
 | **CI/CD** | Github Actions Workflow | 
 
+## Backend Details
+- **Framework:** Spring Boot 3 (RESTful API)
+- **Persistence:** Spring Data JPA with Hibernate ORM  
+- **Database:** PostgreSQL  
+- **Migrations:** Managed with Flyway  
+- **Build Tool:** Maven  
+- **Deployed on:** Render (Dockerized service)
+
 ## Getting Started Prerequisites: Ensure you have installed: 
 - [Git](https://git-scm.com/)
 - [Docker](https://www.docker.com/)
