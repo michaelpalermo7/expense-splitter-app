@@ -2,8 +2,9 @@
 A web application that helps groups or roommates split shared expenses easily and fairly. 
 
 ## Live Demo
-Frontend (Vercel): https://owely.io/  
-Backend (Render): https://owely-backend.onrender.com  
+https://owely.io/  
+
+API Documentation (Swagger): https://owely.io/swagger-ui/index.html#/
 
 > The frontend is deployed on **Vercel**, and the backend API is hosted on **Render**.  
 > Changes pushed to the `main` branch are automatically deployed through GitHub Actions CI/CD.
@@ -46,7 +47,8 @@ The **Expense Splitter App** allows users to log shared expenses and automatical
 - **Build Tool:** Maven  
 - **Deployed on:** Render (Dockerized service)
 
-## Getting Started Prerequisites: Ensure you have installed: 
+## Getting Started 
+Prerequisites: Ensure you have installed: 
 - [Git](https://git-scm.com/)
 - [Docker](https://www.docker.com/)
 - [Docker Compose](https://docs.docker.com/compose/)
@@ -81,7 +83,8 @@ npm install
 npm run dev
 ```
 
-## Environment Variables Backend (application.properties or .env)
+## Environment Variables 
+Backend (application.properties or .env)
 ```properties
 SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/expense_splitter
 SPRING_DATASOURCE_USERNAME=your_db_user
