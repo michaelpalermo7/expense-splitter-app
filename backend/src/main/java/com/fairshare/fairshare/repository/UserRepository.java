@@ -10,4 +10,5 @@ import com.fairshare.fairshare.entity.User;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByUserEmail(String userEmail);
+    
 }

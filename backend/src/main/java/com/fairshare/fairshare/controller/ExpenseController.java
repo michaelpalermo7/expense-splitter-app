@@ -66,7 +66,6 @@ public class ExpenseController {
     @GetMapping("/expenses")
     @Transactional(readOnly = true)
     public List<ExpenseDTO> listGroupExpenses(@PathVariable Long groupId) throws Exception {
-        // TODO: pagination/filtering in future
         return expenseService.listGroupExpenses(groupId);
     }
 

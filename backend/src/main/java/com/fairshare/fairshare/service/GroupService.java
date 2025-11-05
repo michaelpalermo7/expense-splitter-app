@@ -118,18 +118,7 @@ public class GroupService {
             throw new NotFoundException();
         }
 
-        /*
-         * Logic for when auth exists
-         * 
-         * // ensure requester is admin
-         * var requesterMembership =
-         * membershipRepository.findByUser_UserIdAndGroup_GroupId(requesterUserId,
-         * groupId);
-         * if (requesterMembership.isEmpty() || requesterMembership.get().getRole() !=
-         * Membership.Role.ADMIN) {
-         * throw new AccessDeniedException("Only admins can remove members");
-         * }
-         */
+        // TODO: Auth logic
 
         // ensure target membership exists
         var targetMembership = membershipRepository.findByUser_UserIdAndGroup_GroupId(targetUserId, groupId);
@@ -213,27 +202,7 @@ public class GroupService {
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(NotFoundException::new);
 
-        /*
-         * Logic when auth is in place
-         * 
-         * // find the corresponding membership between the user and the group
-         * var membershipOpt =
-         * membershipRepository.findByUser_UserIdAndGroup_GroupId(requestingUserId,
-         * groupId);
-         * 
-         * // if no membership, deny deletion
-         * if (membershipOpt.isEmpty()) {
-         * throw new AccessDeniedException("User is not a member of the group");
-         * }
-         * 
-         * var membership = membershipOpt.get();
-         * 
-         * // if user is not an admin, deny deletion
-         * if (membership.getRole() != Membership.Role.ADMIN) {
-         * throw new AccessDeniedException("Only admins can delete groups");
-         * }
-         * 
-         */
+        // TODO: Auth logic
 
         groupRepository.delete(group);
     }

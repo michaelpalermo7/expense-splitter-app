@@ -132,25 +132,36 @@ public class ExpenseService {
     }
 
     /**
-     * List all expenses within a group
+     * List all expenses of a group given its id
      * 
-     * @param groupId where expenses are
-     * @return expense dto
-     * @throws NotFoundException
+     * @implNote see backend/docs/perf/expense-listing-benchmark.md for optimization
+     *           notes
+     * 
+     * @param groupId to list expenses of
+     * @return
+     * @throws NotFoundException if group not found
      */
     @Transactional(readOnly = true)
     public List<ExpenseDTO> listGroupExpenses(Long groupId) throws NotFoundException {
-
-        if (!groupRepository.existsById(groupId)) {
+        if (!groupRepository.existsById(groupId))
             throw new NotFoundException();
-        }
 
-        // fetch all expenses for this group
+        // query for all expenses for the group
         var expenses = expenseRepository.findByGroup_GroupId(groupId);
+        if (expenses.isEmpty())
+            return List.of();
+
+        var expenseIds = expenses.stream().map(Expense::getExpenseId).toList();
+
+        // query all shares for those expenses
+        var allShares = expenseShareRepository.findByExpense_ExpenseIdIn(expenseIds);
+
+        // group shares by expenseId
+        var sharesByExpenseId = allShares.stream()
+                .collect(java.util.stream.Collectors.groupingBy(es -> es.getExpense().getExpenseId()));
 
         return expenses.stream().map(expense -> {
-            // fetch all shares for this expense
-            var shares = expenseShareRepository.findByExpense_ExpenseId(expense.getExpenseId())
+            var shares = sharesByExpenseId.getOrDefault(expense.getExpenseId(), List.of())
                     .stream()
                     .map(s -> new ShareDTO(
                             s.getParticipant().getUserId(),
