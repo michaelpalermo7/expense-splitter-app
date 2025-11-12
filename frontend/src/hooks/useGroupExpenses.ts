@@ -1,17 +1,12 @@
 import { useEffect, useState } from "react";
-import { getGroupExpenses } from "../services/ExpenseService";
+import { getGroupExpensesByToken } from "../services/ExpenseService";
 import type { Expense } from "../types";
 
-export function useGroupExpenses(id?: string) {
+export function useGroupExpensesByToken(token?: string) {
   const [expenses, setExpenses] = useState<Expense[]>([]);
-
   useEffect(() => {
-    if (!id) return;
-    const groupId = Number(id);
-    if (Number.isNaN(groupId)) return;
-
-    getGroupExpenses(groupId).then((res) => setExpenses(res.data));
-  }, [id]);
-
-  return { expenses, setExpenses };
+    if (!token) return;
+    getGroupExpensesByToken(token).then((res) => setExpenses(res.data));
+  }, [token]);
+  return { expenses };
 }

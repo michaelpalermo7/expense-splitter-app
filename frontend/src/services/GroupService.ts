@@ -1,31 +1,42 @@
 import { api } from "./client";
-import type {
-  AddMemberRequest,
-  Group,
-  GroupCreate,
-  GroupMember,
-} from "../types";
+import type { Group, GroupMember } from "../types";
 
-export const listAllGroups = () => api.get<Group[]>("/groups");
+export async function createGroup(payload: { groupName: string }) {
+  return api.post<Group>("/group", payload);
+}
 
-export const createGroup = (group: GroupCreate) =>
-  api.post<Group>("/groups", group);
+export async function addMemberByToken(token: string, displayName: string) {
+  return api.post(`/group/${encodeURIComponent(token)}/members`, {
+    displayName,
+  });
+}
 
-export const deleteGroup = (id: number) => {
-  return api.delete(`/groups/${id}`);
-};
+export async function addMembersBulkByToken(token: string, names: string[]) {
+  return api.post(`/group/${encodeURIComponent(token)}/members/bulk`, {
+    names,
+  });
+}
 
-export const getGroupById = (id: number) => {
-  return api.get<Group>(`/groups/${id}`);
-};
+export async function getInviteLink(token: string) {
+  return api.get<string>(`/group/${encodeURIComponent(token)}/link`);
+}
 
-export const getGroupMembers = (id: number) => {
-  return api.get<GroupMember[]>(`/groups/${id}/members`);
-};
+export const getGroupByToken = (token: string) =>
+  api.get<Group>(`/group/${encodeURIComponent(token)}`);
 
-export const deleteGroupMember = (id: number, userId: number) => {
-  return api.delete(`/groups/${id}/members/${userId}`);
-};
+export const getGroupMembersByToken = (token: string) =>
+  api.get<GroupMember[]>(`/group/${encodeURIComponent(token)}/members`);
 
-export const addGroupMember = (groupId: number, body: AddMemberRequest) =>
-  api.post<GroupMember>(`/groups/${groupId}/members`, body);
+export const deleteGroupMemberByToken = (token: string, membershipId: number) =>
+  api.delete(`/group/${encodeURIComponent(token)}/members/${membershipId}`);
+
+export function addGroupMemberByToken(
+  token: string,
+  data: { displayName: string }
+) {
+  return api.post(`/group/${token}/members`, data);
+}
+
+export function getGroupInviteLink(token: string) {
+  return api.get<string>(`/group/${token}/link`);
+}

@@ -1,7 +1,6 @@
 package com.fairshare.fairshare.service;
 
 import java.nio.file.AccessDeniedException;
-import java.util.List;
 
 import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 import org.springframework.stereotype.Service;
@@ -13,212 +12,125 @@ import com.fairshare.fairshare.entity.Group;
 import com.fairshare.fairshare.entity.Membership;
 import com.fairshare.fairshare.repository.GroupRepository;
 import com.fairshare.fairshare.repository.MembershipRepository;
-import com.fairshare.fairshare.repository.UserRepository;
+import com.fairshare.fairshare.util.TokenGenerator;
 
 @Service
 public class GroupService {
 
     private final GroupRepository groupRepository;
     private final MembershipRepository membershipRepository;
-    private final UserRepository userRepository;
 
     public GroupService(GroupRepository groupRepository,
-            MembershipRepository membershipRepository,
-            UserRepository userRepository) {
+            MembershipRepository membershipRepository) {
         this.groupRepository = groupRepository;
         this.membershipRepository = membershipRepository;
-        this.userRepository = userRepository;
     }
 
-    /**
-     * Creates a group and makes the creating user an admin
-     * 
-     * @param name
-     * @param creatorUserId
-     * @return GroupDTO
-     */
     @Transactional
-    public GroupDTO createGroup(String name, Long creatorUserId) {
-
-        /* TODO: Enforce stricter group name conventions */
-
-        /* create the group and save it */
+    public GroupDTO createGroup(String groupName) {
         Group g = new Group();
-        g.setGroupName(name);
+        g.setGroupName(groupName);
+        g.setInviteToken(TokenGenerator.newInviteToken());
         Group saved = groupRepository.save(g);
 
-        /* defining the membership and making group creator an admin */
-        Membership member = new Membership();
-        var creator = userRepository.getReferenceById(creatorUserId);
-        member.setUser(creator);
-        member.setGroup(saved);
-        member.setRole(Membership.Role.ADMIN);
-
-        membershipRepository.save(member);
-
-        return new GroupDTO(saved.getGroupId(), saved.getGroupName(), saved.getGroupCreatedAt());
-
+        return new GroupDTO(saved.getGroupId(), saved.getGroupName(), saved.getGroupCreatedAt(), g.getInviteToken());
     }
 
-    /**
-     * Adds a user to a group and defaults them to member role
-     * 
-     * @param groupId group to add user to
-     * @param userId  user to be added
-     * @param role    role of the user (defaults to member)
-     * @return newly creating membership of user
-     * @throws NotFoundException        if user or group not found
-     * @throws IllegalArgumentException if user already exists within group
-     */
+    @Transactional(readOnly = true)
+    public String getInviteLink(Long groupId) throws NotFoundException {
+        Group g = groupRepository.findById(groupId).orElseThrow(NotFoundException::new);
+        return g.getInviteToken();
+    }
+
     @Transactional
-    public MembershipDTO addMember(Long groupId, Long userId, Membership.Role role)
+    public String rotateInviteLink(Long groupId) throws NotFoundException {
+        Group g = groupRepository.findById(groupId).orElseThrow(NotFoundException::new);
+        g.setInviteToken(TokenGenerator.newInviteToken());
+        groupRepository.save(g);
+        return g.getInviteToken();
+    }
+
+    @Transactional(readOnly = true)
+    public GroupDTO findByInviteToken(String token) throws NotFoundException {
+        Group g = groupRepository.findByInviteToken(token).orElseThrow(NotFoundException::new);
+        return new GroupDTO(g.getGroupId(), g.getGroupName(), g.getGroupCreatedAt(), g.getInviteToken());
+    }
+
+    @Transactional
+    public com.fairshare.fairshare.dto.MembershipDTO addMemberByName(Long groupId, String displayName)
             throws NotFoundException, IllegalArgumentException {
-
-        // validate existence
-        var group = groupRepository.findById(groupId)
-                .orElseThrow(NotFoundException::new);
-        var user = userRepository.findById(userId)
-                .orElseThrow(NotFoundException::new);
-
-        // prevent duplicates
-        if (membershipRepository.findByUser_UserIdAndGroup_GroupId(userId, groupId).isPresent()) {
-            throw new IllegalArgumentException("User is already a member");
+        Group group = groupRepository.findById(groupId).orElseThrow(NotFoundException::new);
+        if (membershipRepository.existsByGroup_GroupIdAndDisplayNameIgnoreCase(groupId, displayName)) {
+            throw new IllegalArgumentException("A member with that name already exists in this group.");
         }
-
-        // create & default role to MEMBER if null
-        Membership newMember = new Membership();
-        newMember.setUser(user);
-        newMember.setGroup(group);
-        newMember.setRole(role != null ? role : Membership.Role.MEMBER);
-
-        Membership saved = membershipRepository.save(newMember);
-
-        return new MembershipDTO(
-                saved.getMembershipId(),
-                saved.getUser().getUserId(),
-                saved.getGroup().getGroupId(),
-                saved.getRole());
+        Membership m = new Membership();
+        m.setGroup(group);
+        m.setDisplayName(displayName.trim());
+        Membership saved = membershipRepository.save(m);
+        return new MembershipDTO(saved.getMembershipId(), saved.getGroup().getGroupId(), saved.getDisplayName());
     }
 
-    /**
-     * Removes a member from a group (only actionable by admins)
-     * 
-     * @param requesterUserId user making the remove request
-     * @param targetUserId    user to be removed
-     * @param groupId         group to remove target user from
-     * @throws NotFoundException     if user/group not found
-     * @throws AccessDeniedException if requesting user is a member and not an admin
-     */
     @Transactional
-    public void removeMember(Long targetUserId, Long groupId)
+    public java.util.List<MembershipDTO> addMembersByNames(Long groupId, java.util.List<String> rawNames)
+            throws NotFoundException {
+        Group group = groupRepository.findById(groupId).orElseThrow(NotFoundException::new);
+        java.util.Set<String> seen = new java.util.HashSet<>();
+        java.util.List<String> names = rawNames.stream()
+                .map(n -> n == null ? "" : n.trim())
+                .filter(n -> !n.isBlank())
+                .filter(n -> seen.add(n.toLowerCase()))
+                .toList();
+        java.util.List<MembershipDTO> created = new java.util.ArrayList<>(names.size());
+        for (String name : names) {
+            if (membershipRepository.existsByGroup_GroupIdAndDisplayNameIgnoreCase(groupId, name))
+                continue;
+            Membership m = new Membership();
+            m.setGroup(group);
+            m.setDisplayName(name);
+            Membership saved = membershipRepository.save(m);
+            created.add(
+                    new MembershipDTO(saved.getMembershipId(), saved.getGroup().getGroupId(), saved.getDisplayName()));
+        }
+        return created;
+    }
+
+    @Transactional
+    public void removeMember(Long membershipId, Long groupId)
             throws NotFoundException, AccessDeniedException {
-
-        // verify group exists
-        if (groupRepository.findById(groupId).isEmpty()) {
-            throw new NotFoundException();
+        groupRepository.findById(groupId).orElseThrow(NotFoundException::new);
+        Membership target = membershipRepository.findById(membershipId).orElseThrow(NotFoundException::new);
+        if (!target.getGroup().getGroupId().equals(groupId)) {
+            throw new AccessDeniedException("Membership does not belong to this group.");
         }
-
-        // TODO: Auth logic
-
-        // ensure target membership exists
-        var targetMembership = membershipRepository.findByUser_UserIdAndGroup_GroupId(targetUserId, groupId);
-        if (targetMembership.isEmpty()) {
-            throw new NotFoundException();
-        }
-
-        var target = targetMembership.get();
-
-        // prevent removing last admin
-        if (target.getRole() == Membership.Role.ADMIN &&
-                membershipRepository.countByGroup_GroupIdAndRole(groupId, Membership.Role.ADMIN) == 1) {
-            throw new IllegalStateException("Cannot remove last admin from the group");
-        }
-
         membershipRepository.delete(target);
     }
 
-    /* TODO: method for an admin to change a user's role within a group */
-
-    /**
-     * List all members within a specified group
-     * 
-     * @param groupId group to list members of
-     * @return list of membership DTOs
-     * @throws NotFoundException if group not found
-     */
     @Transactional(readOnly = true)
-    public List<MembershipDTO> listAllMembers(Long groupId) throws NotFoundException {
-
-        if (!(groupRepository.existsById(groupId))) {
+    public java.util.List<MembershipDTO> listAllMembers(Long groupId) throws NotFoundException {
+        if (!groupRepository.existsById(groupId))
             throw new NotFoundException();
-        }
-
-        // using map to map each member in the group to their respective DTO
-        // converting those into a list
         return membershipRepository.findByGroup_GroupId(groupId).stream()
-                .map(m -> new MembershipDTO(
-                        m.getMembershipId(),
-                        m.getUser().getUserId(),
-                        m.getGroup().getGroupId(),
-                        (m.getRole())))
+                .map(m -> new MembershipDTO(m.getMembershipId(), m.getGroup().getGroupId(), m.getDisplayName()))
                 .toList();
-
     }
 
-    /**
-     * Gets a group from a coresponding ID
-     * 
-     * @param groupId group to fetch
-     * @return the gorup DTO
-     * @throws NotFoundException if group not found
-     */
     @Transactional(readOnly = true)
     public GroupDTO getGroupById(Long groupId) throws NotFoundException {
-        var foundGroup = groupRepository.findById(groupId);
-
-        if (foundGroup.isEmpty()) {
-            throw new NotFoundException();
-        }
-
-        var group = foundGroup.get();
-
-        return new GroupDTO(
-                group.getGroupId(),
-                group.getGroupName(),
-                group.getGroupCreatedAt());
+        Group group = groupRepository.findById(groupId).orElseThrow(NotFoundException::new);
+        return new GroupDTO(group.getGroupId(), group.getGroupName(), group.getGroupCreatedAt(),
+                group.getInviteToken());
     }
 
-    /**
-     * Deletes a group (only actionable if requesting user is an admin)
-     * 
-     * @param groupId
-     * @param requestingUserId
-     * @throws NotFoundException
-     * @throws AccessDeniedException
-     */
     @Transactional
     public void deleteGroup(Long groupId) throws NotFoundException {
-
-        Group group = groupRepository.findById(groupId)
-                .orElseThrow(NotFoundException::new);
-
-        // TODO: Auth logic
-
+        Group group = groupRepository.findById(groupId).orElseThrow(NotFoundException::new);
         groupRepository.delete(group);
     }
 
-    /**
-     * Lists all groups in the system.
-     * 
-     * @return list of all groups as DTOs
-     */
     @Transactional(readOnly = true)
-    public List<GroupDTO> listAllGroups() {
+    public java.util.List<GroupDTO> listAllGroups() {
         return groupRepository.findAll().stream()
-                .map(g -> new GroupDTO(
-                        g.getGroupId(),
-                        g.getGroupName(),
-                        g.getGroupCreatedAt()))
+                .map(g -> new GroupDTO(g.getGroupId(), g.getGroupName(), g.getGroupCreatedAt(), g.getInviteToken()))
                 .toList();
     }
 }

@@ -61,7 +61,7 @@ public class Expense {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
-    /* ==== relationships= ==== */
+    /* ==== relationships ==== */
 
     // many-to-one: expenses -> groups
     @NotNull
@@ -69,11 +69,11 @@ public class Expense {
     @JoinColumn(name = "group_id", nullable = false)
     private Group group;
 
-    // many-to-one: expenses -> users (payer)
+    // many-to-one: expenses -> membership (payer)
     @NotNull
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "payer_id", nullable = false)
-    private User payer;
+    @JoinColumn(name = "payer_membership_id", nullable = false)
+    private Membership payer;
 
     // one to many - expenses to expense share
     @OneToMany(mappedBy = "expense", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
@@ -132,16 +132,15 @@ public class Expense {
         this.group = group;
     }
 
-    public User getPayer() {
+    public Membership getPayer() {
         return payer;
     }
 
-    public void setPayer(User payer) {
+    public void setPayer(Membership payer) {
         this.payer = payer;
     }
 
     public Set<ExpenseShare> getShares() {
         return shares;
     }
-
 }

@@ -31,17 +31,17 @@ public class Group {
     @Column(name = "group_created_at", nullable = false, columnDefinition = "timestamptz", insertable = false, updatable = false)
     private Instant groupCreatedAt;
 
+    @Column(name = "invite_token", nullable = false, unique = true, length = 64)
+    private String inviteToken;
+
     /* ==== relationships ==== */
 
-    // one to many - group to memberships
     @OneToMany(mappedBy = "group", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private final Set<Membership> groupMemberships = new HashSet<>();
 
-    // one to many - group to expenses
     @OneToMany(mappedBy = "group", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private final Set<Expense> groupExpenses = new HashSet<>();
 
-    // one to many - group to settlements
     @OneToMany(mappedBy = "group", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private final Set<Settlement> groupSettlements = new HashSet<>();
 
@@ -71,6 +71,14 @@ public class Group {
         this.groupCreatedAt = groupCreatedAt;
     }
 
+    public String getInviteToken() {
+        return inviteToken;
+    }
+
+    public void setInviteToken(String inviteToken) {
+        this.inviteToken = inviteToken;
+    }
+
     public Set<Membership> getGroupMemberships() {
         return groupMemberships;
     }
@@ -82,5 +90,4 @@ public class Group {
     public Set<Settlement> getGroupSettlements() {
         return groupSettlements;
     }
-
 }

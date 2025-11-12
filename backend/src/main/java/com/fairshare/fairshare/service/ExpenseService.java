@@ -26,127 +26,141 @@ import com.fairshare.fairshare.repository.ExpenseShareRepository;
 import com.fairshare.fairshare.repository.GroupRepository;
 import com.fairshare.fairshare.repository.MembershipRepository;
 import com.fairshare.fairshare.repository.SettlementRepository;
-import com.fairshare.fairshare.repository.UserRepository;
 
 @Service
 public class ExpenseService {
 
     private final ExpenseRepository expenseRepository;
-    private final UserRepository userRepository;
     private final GroupRepository groupRepository;
     private final MembershipRepository membershipRepository;
     private final ExpenseShareRepository expenseShareRepository;
     private final SettlementRepository settlementRepository;
 
-    public ExpenseService(ExpenseRepository expenseRepository, GroupRepository groupRepository,
+    public ExpenseService(
+            ExpenseRepository expenseRepository,
+            GroupRepository groupRepository,
             MembershipRepository membershipRepository,
-            UserRepository userRepository, ExpenseShareRepository expenseShareRepository,
+            ExpenseShareRepository expenseShareRepository,
             SettlementRepository settlementRepository) {
         this.expenseRepository = expenseRepository;
         this.groupRepository = groupRepository;
         this.membershipRepository = membershipRepository;
-        this.userRepository = userRepository;
         this.expenseShareRepository = expenseShareRepository;
         this.settlementRepository = settlementRepository;
     }
 
-    /**
-     * Create an expense and split shares equally amongst members
-     * 
-     * @param groupId   group that expense will reside
-     * @param payerId   person who paid the expense
-     * @param amount    amount of expense
-     * @param currency  currency of expense
-     * @param desc      text
-     * @param occuredAt when
-     * @return expense dto
-     * @throws NotFoundException
-     * @throws AccessDeniedException
-     */
     @Transactional
-    public ExpenseDTO createExpense(Long groupId, Long payerId, BigDecimal amount, Expense.CurrencyCode currency,
-            String desc, Instant occuredAt) throws NotFoundException, AccessDeniedException {
+    public ExpenseDTO createExpense(
+            Long groupId,
+            Long payerMembershipId,
+            BigDecimal amount,
+            Expense.CurrencyCode currency,
+            String desc,
+            Instant occurredAt,
+            Long... participantMembershipIds) throws NotFoundException, AccessDeniedException {
 
-        if (!(groupRepository.existsById(groupId)) || !(userRepository.existsById(payerId))) {
+        // Validate group exists
+        if (!groupRepository.existsById(groupId)) {
             throw new NotFoundException();
         }
-        // verify user is member of group
-        if (!membershipRepository.existsByUser_UserIdAndGroup_GroupId(payerId, groupId)) {
-            throw new AccessDeniedException("Payer is not a member of this group");
+
+        // Validate payer membership exists & belongs to the same group
+        Membership payer = membershipRepository.findById(payerMembershipId)
+                .orElseThrow(NotFoundException::new);
+        if (!payer.getGroup().getGroupId().equals(groupId)) {
+            throw new AccessDeniedException("Payer membership is not in this group");
         }
 
-        // verify amount is above 0
+        // Validate amount
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Expense amount must be greater than 0");
         }
-
-        // normalize amount to 2 decimal places 10.235 -> 10.24
         BigDecimal normalizedAmount = amount.setScale(2, RoundingMode.HALF_UP);
 
-        // save expense
+        // Determine participant set (subset or everyone in group)
+        final List<Membership> participants;
+        if (participantMembershipIds != null && participantMembershipIds.length > 0) {
+            // distinct, non-empty, all belong to group
+            List<Long> distinctIds = java.util.Arrays.stream(participantMembershipIds)
+                    .filter(java.util.Objects::nonNull)
+                    .distinct()
+                    .toList();
+
+            if (distinctIds.isEmpty()) {
+                throw new IllegalArgumentException("Participant list cannot be empty");
+            }
+
+            List<Membership> loaded = membershipRepository.findAllById(distinctIds);
+            if (loaded.size() != distinctIds.size()) {
+                throw new NotFoundException();
+            }
+            // ensure all participants are in the same group
+            boolean anyWrongGroup = loaded.stream()
+                    .anyMatch(m -> !m.getGroup().getGroupId().equals(groupId));
+            if (anyWrongGroup) {
+                throw new AccessDeniedException("All participants must belong to the group");
+            }
+            participants = loaded;
+        } else {
+            // everyone in the group
+            participants = membershipRepository.findByGroup_GroupId(groupId);
+            if (participants.isEmpty()) {
+                throw new IllegalStateException("Cannot split expense: no members in group");
+            }
+        }
+
         Expense e = new Expense();
         e.setGroup(groupRepository.getReferenceById(groupId));
-        e.setPayer(userRepository.getReferenceById(payerId));
+        e.setPayer(payer);
         e.setAmount(normalizedAmount);
-        // if currency is null default to cad
         e.setCurrency(currency != null ? currency : Expense.CurrencyCode.CAD);
         e.setDescription(desc);
-        // if occuredat is null default to now
-        e.setOccurredAt(occuredAt != null ? occuredAt : Instant.now());
+        e.setOccurredAt(occurredAt != null ? occurredAt : Instant.now());
 
         Expense saved = expenseRepository.save(e);
 
-        List<Membership> members = membershipRepository.findByGroup_GroupId(groupId);
-        if (members.isEmpty()) {
-            throw new IllegalStateException("Cannot split expense: no members in group");
-        }
+        // Equal split across selected participants with rounding fix on last share
+        int n = participants.size();
+        BigDecimal per = normalizedAmount
+                .divide(BigDecimal.valueOf(n), 2, RoundingMode.HALF_UP);
 
-        // equal split across all members
-        int memberCount = members.size();
-        BigDecimal perMemberShare = normalizedAmount
-                .divide(BigDecimal.valueOf(memberCount), 2, RoundingMode.HALF_UP);
+        BigDecimal runningTotal = BigDecimal.ZERO;
+        List<ShareDTO> shares = new ArrayList<>(n);
 
-        List<ShareDTO> shares = new ArrayList<>(memberCount);
-        for (var m : members) {
+        for (int i = 0; i < n; i++) {
+            Membership m = participants.get(i);
+            BigDecimal shareAmount = (i < n - 1)
+                    ? per
+                    : normalizedAmount.subtract(runningTotal);
+
             ExpenseShare es = new ExpenseShare();
             es.setExpense(saved);
-            es.setParticipant(m.getUser());
-            es.setShareAmount(perMemberShare);
+            es.setMembership(m);
+            es.setShareAmount(shareAmount);
             es.setShareRatio(null);
             expenseShareRepository.save(es);
 
-            shares.add(new ShareDTO(m.getUser().getUserId(), perMemberShare, null));
+            runningTotal = runningTotal.add(shareAmount);
+            shares.add(new ShareDTO(m.getMembershipId(), shareAmount, null));
         }
 
         return new ExpenseDTO(
                 saved.getExpenseId(),
                 groupId,
-                payerId,
+                payerMembershipId,
                 saved.getAmount(),
                 saved.getCurrency(),
                 saved.getDescription(),
                 saved.getOccurredAt(),
                 saved.getCreatedAt(),
-                // set shares
                 shares);
     }
 
-    /**
-     * List all expenses of a group given its id
-     * 
-     * @implNote see backend/docs/perf/expense-listing-benchmark.md for optimization
-     *           notes
-     * 
-     * @param groupId to list expenses of
-     * @return
-     * @throws NotFoundException if group not found
-     */
     @Transactional(readOnly = true)
     public List<ExpenseDTO> listGroupExpenses(Long groupId) throws NotFoundException {
         if (!groupRepository.existsById(groupId))
             throw new NotFoundException();
 
-        // query for all expenses for the group
         var expenses = expenseRepository.findByGroup_GroupId(groupId);
         if (expenses.isEmpty())
             return List.of();
@@ -164,7 +178,7 @@ public class ExpenseService {
             var shares = sharesByExpenseId.getOrDefault(expense.getExpenseId(), List.of())
                     .stream()
                     .map(s -> new ShareDTO(
-                            s.getParticipant().getUserId(),
+                            s.getMembership().getMembershipId(),
                             s.getShareAmount(),
                             s.getShareRatio()))
                     .toList();
@@ -172,7 +186,7 @@ public class ExpenseService {
             return new ExpenseDTO(
                     expense.getExpenseId(),
                     expense.getGroup().getGroupId(),
-                    expense.getPayer().getUserId(),
+                    expense.getPayer().getMembershipId(),
                     expense.getAmount(),
                     expense.getCurrency(),
                     expense.getDescription(),
@@ -182,16 +196,8 @@ public class ExpenseService {
         }).toList();
     }
 
-    /**
-     * retrieve balance of all users within a group
-     * 
-     * @param groupId where users with balances are found
-     * @return balance list (userid, balance)
-     * @throws NotFoundException
-     */
     @Transactional(readOnly = true)
     public List<BalanceDTO> getUserBalances(Long groupId) throws NotFoundException {
-
         if (!groupRepository.existsById(groupId)) {
             throw new NotFoundException();
         }
@@ -203,13 +209,13 @@ public class ExpenseService {
 
         // initialize hashmap with 0.00 balance for each member
         for (Membership member : members) {
-            balances.put(member.getUser().getUserId(), BigDecimal.ZERO);
+            balances.put(member.getMembershipId(), BigDecimal.ZERO);
         }
 
         // add to balance what each payer paid
         List<Expense> expenses = expenseRepository.findByGroup_GroupId(groupId);
         for (Expense exp : expenses) {
-            Long payerId = exp.getPayer().getUserId();
+            Long payerId = exp.getPayer().getMembershipId();
             BigDecimal current = balances.getOrDefault(payerId, BigDecimal.ZERO);
             balances.put(payerId, current.add(exp.getAmount()));
         }
@@ -217,7 +223,7 @@ public class ExpenseService {
         // subtract from balance what each participant owes
         List<ExpenseShare> shares = expenseShareRepository.findByExpense_Group_GroupId(groupId);
         for (ExpenseShare share : shares) {
-            Long participantId = share.getParticipant().getUserId();
+            Long participantId = share.getMembership().getMembershipId();
             BigDecimal current = balances.getOrDefault(participantId, BigDecimal.ZERO);
             balances.put(participantId, current.subtract(share.getShareAmount()));
         }
@@ -225,20 +231,20 @@ public class ExpenseService {
         // apply settlements (payer pays out, payee receives)
         List<Settlement> settlements = settlementRepository.findByGroup_GroupId(groupId);
         for (Settlement s : settlements) {
-            Long payerId = s.getPayer().getUserId();
-            Long payeeId = s.getPayee().getUserId();
+            Long payerId = s.getPayer().getMembershipId();
+            Long payeeId = s.getPayee().getMembershipId();
             BigDecimal amt = s.getAmount();
             balances.put(payerId, balances.get(payerId).subtract(amt));
             balances.put(payeeId, balances.get(payeeId).add(amt));
         }
 
-        // normalize balances
+        // normalize balances to ensure they sum to zero
         BigDecimal total = balances.values().stream()
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        if (total.compareTo(BigDecimal.ZERO) != 0) {
-            Long firstUserId = balances.keySet().iterator().next();
-            balances.put(firstUserId, balances.get(firstUserId).subtract(total));
+        if (total.compareTo(BigDecimal.ZERO) != 0 && !balances.isEmpty()) {
+            Long firstId = balances.keySet().iterator().next();
+            balances.put(firstId, balances.get(firstId).subtract(total));
         }
 
         // round balances to 2 decimals for clean output
@@ -247,46 +253,35 @@ public class ExpenseService {
                 .toList();
     }
 
-    /**
-     * Create a settlement
-     * 
-     * @param groupId  where settlement occurs
-     * @param payerId  payer of settlement
-     * @param payeeId  receiver of settlement
-     * @param amount   amount of settlement
-     * @param currency currency it was made in
-     * @return
-     * @throws NotFoundException
-     * @throws AccessDeniedException
-     */
     @Transactional
     public SettlementDTO createSettlement(
             Long groupId,
-            Long payerId,
-            Long payeeId,
+            Long payerMembershipId,
+            Long payeeMembershipId,
             BigDecimal amount,
             Settlement.CurrencyCode currency) throws NotFoundException, AccessDeniedException {
 
-        // validate group & users & membership
         if (!groupRepository.existsById(groupId))
             throw new NotFoundException();
 
-        if (!userRepository.existsById(payerId) || !userRepository.existsById(payeeId))
-            throw new NotFoundException();
+        // validate memberships exist
+        Membership payer = membershipRepository.findById(payerMembershipId)
+                .orElseThrow(NotFoundException::new);
+        Membership payee = membershipRepository.findById(payeeMembershipId)
+                .orElseThrow(NotFoundException::new);
 
-        if (!membershipRepository.existsByUser_UserIdAndGroup_GroupId(payerId, groupId) ||
-                !membershipRepository.existsByUser_UserIdAndGroup_GroupId(payeeId, groupId)) {
-            throw new AccessDeniedException("Both users must be members of the group");
+        // validate both belong to the group
+        if (!payer.getGroup().getGroupId().equals(groupId) || !payee.getGroup().getGroupId().equals(groupId)) {
+            throw new AccessDeniedException("Both memberships must belong to the group");
         }
 
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Cannot settle 0 or negative");
         }
 
-        // create settlement
         Settlement s = new Settlement();
-        s.setPayer(userRepository.getReferenceById(payerId));
-        s.setPayee(userRepository.getReferenceById(payeeId));
+        s.setPayer(payer);
+        s.setPayee(payee);
         s.setGroup(groupRepository.getReferenceById(groupId));
         s.setAmount(amount.setScale(2, RoundingMode.HALF_UP));
         s.setCurrency(currency != null ? currency : Settlement.CurrencyCode.CAD);
@@ -294,24 +289,16 @@ public class ExpenseService {
 
         Settlement saved = settlementRepository.save(s);
 
-        // return dto
         return new SettlementDTO(
                 saved.getSettlementId(),
-                payerId,
-                payeeId,
+                payer.getMembershipId(),
+                payee.getMembershipId(),
                 groupId,
                 saved.getAmount(),
                 saved.getCurrency(),
                 saved.getSettledAt());
     }
 
-    /**
-     * returns a list of settlements for a group
-     * 
-     * @param groupId to find settlements of
-     * @return list of settlement dtos
-     * @throws NotFoundException if group doesnt exist
-     */
     @Transactional(readOnly = true)
     public List<SettlementDTO> listGroupSettlements(Long groupId) throws NotFoundException {
         if (!groupRepository.existsById(groupId)) {
@@ -323,8 +310,8 @@ public class ExpenseService {
                 .stream()
                 .map(s -> new SettlementDTO(
                         s.getSettlementId(),
-                        s.getPayer().getUserId(),
-                        s.getPayee().getUserId(),
+                        s.getPayer().getMembershipId(),
+                        s.getPayee().getMembershipId(),
                         s.getGroup().getGroupId(),
                         s.getAmount(),
                         s.getCurrency(),

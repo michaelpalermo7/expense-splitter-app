@@ -6,17 +6,14 @@ import java.util.List;
 
 import com.fairshare.fairshare.entity.Expense;
 
-public record ExpenseDTO (
-    Long id,
-    Long groupId,
-    Long payerId,
-    BigDecimal amount,
-    Expense.CurrencyCode currency,
-    String description,
-    Instant occurredAt,
-    Instant createdAt,
-    //contains a breakdown of shares per participant of the expense
-    List<ShareDTO> shares
-    ) {}
-    
-
+public record ExpenseDTO(
+        Long expenseId,
+        Long groupId,
+        Long payerMembershipId,
+        BigDecimal amount,
+        Expense.CurrencyCode currency,
+        String description,
+        Instant occurredAt,
+        Instant createdAt,
+        List<ShareDTO> shares) {
+}

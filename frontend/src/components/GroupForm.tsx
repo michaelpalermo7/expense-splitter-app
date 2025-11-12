@@ -1,74 +1,52 @@
-import { useState, type FormEvent, type ChangeEvent } from "react";
+import { useState, type FormEvent } from "react";
 import LabeledInput from "./LabeledInput";
 import PrimaryButton from "./FormButton";
+import MemberChipsInput from "./MemberChips";
 
-export type GroupFormValues = {
-  name: string;
-  userName: string;
-  userEmail: string;
+export type CreateGroupFormValues = {
+  groupName: string;
+  memberNames: string[];
 };
 
 interface GroupFormProps {
   onSubmit: (
-    values: GroupFormValues,
+    values: CreateGroupFormValues,
     e: FormEvent<HTMLFormElement>
   ) => void | Promise<void>;
 }
 
-const GroupForm = ({ onSubmit }: GroupFormProps) => {
-  const [name, setName] = useState<string>("");
-  const [userName, setUserName] = useState<string>("");
-  const [userEmail, setUserEmail] = useState<string>("");
+export default function GroupForm({ onSubmit }: GroupFormProps) {
+  const [groupName, setGroupName] = useState("");
+  const [members, setMembers] = useState<string[]>([]);
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    onSubmit({ name, userName, userEmail }, e);
+    onSubmit({ groupName: groupName.trim(), memberNames: members }, e);
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className="space-y-5 p-4">
       <LabeledInput
         id="group-name"
         label="Group Name"
-        placeholder="Enter group name"
-        value={name}
-        onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
+        placeholder="Trip to NYC"
+        value={groupName}
+        onChange={(e) => setGroupName(e.target.value)}
         type="text"
         autoComplete="organization"
         required
       />
 
-      <LabeledInput
-        id="admin-name"
-        label="Admin Name"
-        placeholder="Enter admin name"
-        value={userName}
-        onChange={(e: ChangeEvent<HTMLInputElement>) =>
-          setUserName(e.target.value)
-        }
-        type="text"
-        autoComplete="name"
-        required
+      <MemberChipsInput
+        label="Member Name"
+        placeholder="Olivia"
+        value={members}
+        onChange={setMembers}
       />
 
-      <LabeledInput
-        id="admin-email"
-        label="Admin Email"
-        placeholder="Enter admin email"
-        value={userEmail}
-        onChange={(e: ChangeEvent<HTMLInputElement>) =>
-          setUserEmail(e.target.value)
-        }
-        type="email"
-        autoComplete="email"
-        required
-      />
-
-      <div className="flex justify-center">
-        <PrimaryButton label="Add Group" />
+      <div className="flex justify-center pt-8">
+        <PrimaryButton label="Create Group" />
       </div>
     </form>
   );
-};
-
-export default GroupForm;
+}

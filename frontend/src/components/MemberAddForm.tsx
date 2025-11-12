@@ -1,11 +1,11 @@
-import { useState, type FormEvent, type ChangeEvent } from "react";
-import LabeledInput from "./LabeledInput";
-import PrimaryButton from "./FormButton";
+import { useState, type FormEvent } from "react";
+import MemberChipsInput from "./MemberChips";
+import FormButton from "./FormButton";
+import BackButton from "./BackButton";
+import { useNavigate } from "react-router-dom";
 
 export type MemberAddFormValues = {
-  userName: string;
-  userEmail: string;
-  userRole: string;
+  memberNames: string[];
 };
 
 interface MemberAddFormProps {
@@ -16,58 +16,26 @@ interface MemberAddFormProps {
 }
 
 const MemberAddForm = ({ onSubmit }: MemberAddFormProps) => {
-  const [userName, setUserName] = useState<string>("");
-  const [userEmail, setUserEmail] = useState<string>("");
-  const [userRole, setUserRole] = useState<string>("");
+  const navigate = useNavigate();
+  const [members, setMembers] = useState<string[]>([]);
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    onSubmit({ userName, userEmail, userRole }, e);
+    onSubmit({ memberNames: members }, e);
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <LabeledInput
-        id="user-name"
-        label="User Name"
-        placeholder="Enter user name"
-        value={userName}
-        onChange={(e: ChangeEvent<HTMLInputElement>) =>
-          setUserName(e.target.value)
-        }
-        type="text"
-        autoComplete="name"
-        required
+    <form onSubmit={handleSubmit} className="space-y-5 p-4">
+      <MemberChipsInput
+        label="Member Name"
+        placeholder="Olivia"
+        value={members}
+        onChange={setMembers}
       />
 
-      <LabeledInput
-        id="user-email"
-        label="User Email"
-        placeholder="Enter user email"
-        value={userEmail}
-        onChange={(e: ChangeEvent<HTMLInputElement>) =>
-          setUserEmail(e.target.value)
-        }
-        type="email"
-        autoComplete="email"
-        required
-      />
-
-      <LabeledInput
-        id="user-role"
-        label="User Role"
-        placeholder='e.g. "MEMBER" or "ADMIN"'
-        value={userRole}
-        onChange={(e: ChangeEvent<HTMLInputElement>) =>
-          setUserRole(e.target.value)
-        }
-        type="text"
-        autoComplete="off"
-        required
-      />
-
-      <div className="flex justify-center">
-        <PrimaryButton label="Add Member" />
+      <div className="flex flex-col items-center gap-3 pt-8">
+        <FormButton label="Add Member(s)" />
+        <BackButton label="Back" onClick={() => navigate(-1)} />
       </div>
     </form>
   );

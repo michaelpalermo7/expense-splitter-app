@@ -6,11 +6,11 @@ import java.time.Instant;
 import com.fairshare.fairshare.entity.Settlement;
 
 public record SettlementDTO(
-        Long id,
-        Long payerId,
-        Long payeeId,
-        Long groupId,
-        BigDecimal amount,
-        Settlement.CurrencyCode currency,
-        Instant settledAt) {
+                Long settlementId,
+                Long payerMembershipId,
+                Long payeeMembershipId,
+                Long groupId,
+                BigDecimal amount,
+                Settlement.CurrencyCode currency,
+                Instant settledAt) {
 }

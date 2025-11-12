@@ -1,6 +1,5 @@
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes /*, Navigate */ } from "react-router-dom";
 import "./App.css";
-import GroupListPage from "./pages/Groups/GroupListPage";
 import GroupAddPage from "./pages/Groups/GroupAddPage";
 
 import "./index.css";
@@ -11,24 +10,34 @@ import ExpenseAddPage from "./pages/GroupDetail/ExpenseAddPage";
 
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import HomePage from "./pages/Groups/HomePage";
+import GroupSharePage from "./pages/GroupDetail/GroupSharePage";
 
 function App() {
   return (
-    <div className="min-h-screen flex flex-col ">
-      <Header />
-      <main className="flex-1">
-        <Routes>
-          {/* http://localhost:5173 */}
-          <Route path="/" element={<GroupListPage />} />
-          <Route path="/groups" element={<GroupListPage />} />
-          <Route path="/add-group" element={<GroupAddPage />} />
-          <Route path="/group-info/:id" element={<GroupInfoPage />} />
-          <Route path="/add-member/:id" element={<MemberAddPage />} />
-          <Route path="/add-settlement/:id" element={<SettlementAddPage />} />
-          <Route path="/add-expense/:id" element={<ExpenseAddPage />} />
-        </Routes>
-      </main>
-      <Footer />
+    <div className="min-h-screen bg-gray-50 flex justify-center">
+      <div className="w-full max-w-[500px] min-h-screen bg-white shadow-md overflow-x-hidden flex flex-col">
+        <Header />
+        <main className="flex-1">
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/add-group" element={<GroupAddPage />} />
+
+            <Route path="/group/:token" element={<GroupInfoPage />} />
+            <Route path="/add-member/:token" element={<MemberAddPage />} />
+            <Route
+              path="/add-settlement/:token"
+              element={<SettlementAddPage />}
+            />
+            <Route path="/add-expense/:token" element={<ExpenseAddPage />} />
+
+            <Route path="/group/:token/share" element={<GroupSharePage />} />
+          </Routes>
+        </main>
+        <div className="mt-6">
+          <Footer />
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,17 +1,12 @@
 import { useEffect, useState } from "react";
+import { getGroupSettlementsByToken } from "../services/ExpenseService";
 import type { Settlement } from "../types";
-import { getGroupSettlements } from "../services/ExpenseService";
 
-export const useGroupSettlements = (groupId?: string) => {
+export function useGroupSettlementsByToken(token?: string) {
   const [settlements, setSettlements] = useState<Settlement[]>([]);
-
   useEffect(() => {
-    if (!groupId) return;
-    const idNum = Number(groupId);
-    if (Number.isNaN(idNum)) return;
-
-    getGroupSettlements(idNum).then(setSettlements);
-  }, [groupId]);
-
+    if (!token) return;
+    getGroupSettlementsByToken(token).then((res) => setSettlements(res.data));
+  }, [token]);
   return { settlements };
-};
+}

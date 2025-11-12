@@ -1,88 +1,80 @@
-/* ===== USER ===== */
-export interface UserCreate {
-  userName: string;
-  userEmail: string;
-}
-
-export interface User {
-  userId: number;
-  userName: string;
-  userEmail: string;
-}
-
 /* ===== GROUP ===== */
 export interface GroupCreate {
-  name: string;
-  creatorUserId: number;
+  groupName: string;
 }
 
 export interface Group {
-  id: number;
-  name: string;
-  createdAt: string;
-}
-
-export interface GroupMember {
-  id: number;
-  userId: number;
   groupId: number;
-  role: string;
+  groupName: string;
+  groupCreatedAt: string | null;
+  inviteToken: string;
 }
 
-export interface MemberWithName extends GroupMember {
-  userName: string;
-}
+export type GroupMember = {
+  membershipId: number;
+  groupId: number;
+  displayName: string;
+};
 
+export type MemberForUI = GroupMember;
+
+/** Request body for POST /groups/{id}/members */
 export interface AddMemberRequest {
-  userId: number;
-  role: string;
+  displayName: string;
+}
+
+/** Request body for POST /groups/{id}/members/bulk */
+export interface CreateMemberRequest {
+  names: string[];
 }
 
 /* ===== EXPENSES ===== */
 export type Share = {
-  participantId: number;
-  shareAmount: string;
-  shareRatio: string;
+  membershipId: number;
+  shareAmount: number;
+  shareRatio: number | null;
 };
 
 export type Expense = {
-  id: number;
+  expenseId: number;
   groupId: number;
-  payerId: number;
-  amount: string;
-  currency: string;
-  description: string;
-  occurredAt: string;
-  createdAt: string;
-  shares: Share[];
+  payerMembershipId: number;
+  amount: number;
+  currency: "CAD" | "USD";
+  description?: string | null;
+  occurredAt: string; // ISO
+  createdAt: string; // ISO
+  shares?: Share[]; // present in list/detail responses
 };
 
 export type Balance = {
-  userId: number;
+  membershipId: number;
   balance: number;
 };
 
 export type ExpenseCreate = {
-  payerEmail: string;
+  payerMembershipId: number;
   amount: number;
-  currency: string;
-  description: string;
+  currency: "CAD" | "USD";
+  description?: string;
   occurredAt: string;
+  participantMembershipIds?: number[];
 };
 
+/* ===== SETTLEMENTS ===== */
 export type SettlementCreate = {
-  payerEmail: string;
-  payeeEmail: string;
+  payerMembershipId: number;
+  payeeMembershipId: number;
   amount: number;
-  currency: string;
+  currency: "CAD" | "USD" | "EUR";
 };
 
 export type Settlement = {
   id: number;
+  payerMembershipId: number;
+  payeeMembershipId: number;
   groupId: number;
-  payerId: number;
-  payeeId: number;
   amount: number;
-  currency: string;
-  settledAt: string;
+  currency: "CAD" | "USD" | "EUR";
+  settledAt: string; // ISO
 };

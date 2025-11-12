@@ -1,43 +1,33 @@
-import type { MemberWithName } from "../types";
-import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
+import type { GroupMember } from "../types";
+import { X } from "lucide-react";
 
 type MembersListProps = {
-  members: MemberWithName[];
-  onDelete: (userId: number) => void;
+  members: Pick<GroupMember, "membershipId" | "displayName">[];
+  onDelete: (membershipId: number) => void;
 };
-
-const badgeClass = (role?: string) =>
-  (role ?? "").toUpperCase() === "ADMIN"
-    ? "bg-blue-50 text-blue-700"
-    : "bg-gray-100 text-gray-700";
 
 const MembersList = ({ members, onDelete }: MembersListProps) => {
   return (
-    <ul className="list-none pl-0">
-      {members.map((m) => (
-        <li
-          key={m.userId}
-          className="flex items-center justify-between gap-4 py-2 px-1"
-        >
-          <div className="flex items-center gap-3 min-w-0 flex-1">
-            <p className="truncate font-medium text-gray-900">{m.userName}</p>
-            <span
-              className={`shrink-0 inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap ${badgeClass(
-                m.role
-              )}`}
+    <ul className="flex flex-wrap items-center gap-y-1 text-sm text-gray-700 p-0 m-0">
+      {members.map((m, i) => (
+        <li key={m.membershipId} className="inline-flex items-center">
+          <span className="inline-flex items-center">
+            <span className="font-medium text-gray-900">{m.displayName}</span>
+            <button
+              onClick={() => onDelete(m.membershipId)}
+              aria-label={`Remove ${m.displayName}`}
+              title={`Remove ${m.displayName}`}
+              className="cursor-pointer ml-1 p-0.5 rounded hover:bg-red-50 text-gray-400 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-300"
             >
-              {(m.role ?? "").toUpperCase()}
-            </span>
-          </div>
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </span>
 
-          <button
-            onClick={() => onDelete(m.userId)}
-            title={`Remove ${m.userName}`}
-            className="inline-flex items-center gap-2 rounded-lg border border-red-700 px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-700 hover:text-white focus:outline-none focus:ring-4 focus:ring-red-300 transition-colors"
-          >
-            <DeleteForeverIcon fontSize="small" />
-            Remove
-          </button>
+          {i < members.length - 1 && (
+            <span aria-hidden="true" className="mx-2 text-gray-400">
+              •
+            </span>
+          )}
         </li>
       ))}
     </ul>

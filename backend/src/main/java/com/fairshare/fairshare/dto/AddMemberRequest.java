@@ -1,11 +1,8 @@
 package com.fairshare.fairshare.dto;
 
-import com.fairshare.fairshare.entity.Membership.Role;
-
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 public record AddMemberRequest(
-        @NotNull Long userId,
-        @NotBlank Role role) {
+                @NotBlank @Size(max = 100) String displayName) {
 }

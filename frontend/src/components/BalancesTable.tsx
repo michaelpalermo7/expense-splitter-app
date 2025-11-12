@@ -7,54 +7,39 @@ type BalancesListProps = {
 
 const BalancesList = ({ balances, nameById }: BalancesListProps) => {
   if (balances.length === 0) {
-    return <p className="text-gray-500">No balances yet.</p>;
+    return (
+      <div className="text-gray-500 text-center p-4 bg-gray-50 border border-gray-200 rounded-md">
+        No balances yet.
+      </div>
+    );
   }
 
   return (
-    <div className="relative overflow-x-auto shadow-sm sm:rounded-lg bg-white hover:shadow-md">
-      <table className="w-full text-lg text-left text-gray-700">
-        {/* Header of table */}
-        <thead className="text-md text-white uppercase bg-black">
-          <tr>
-            <th
-              scope="col"
-              className="px-6 py-3 text-xs uppercase tracking-wide opacity-90 font-normal"
-            >
-              Member
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-xs uppercase tracking-wide opacity-90 text-right font-normal "
-            >
-              Balance
-            </th>
-          </tr>
-        </thead>
+    <div className="flex flex-col gap-3">
+      {balances.map((b) => {
+        const isNegative = b.balance < 0;
+        const pillClass = isNegative
+          ? "bg-red-50 text-red-700"
+          : "bg-green-50 text-green-700";
 
-        <tbody>
-          {balances.map((b) => {
-            const isNegative = b.balance < 0;
-            const pillClass = isNegative
-              ? "bg-red-50 text-red-700"
-              : "bg-green-50 text-green-700";
-
-            return (
-              <tr key={b.userId} className="bg-white border-none">
-                <td className="px-6 py-4 font-medium text-gray-700 whitespace-nowrap">
-                  {nameById[b.userId] ?? `User ${b.userId}`}
-                </td>
-                <td className="px-6 py-4 text-right">
-                  <span
-                    className={`inline-block rounded-full px-3 py-1 text-sm font-semibold tabular-nums ${pillClass}`}
-                  >
-                    ${b.balance.toFixed(2)}
-                  </span>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+        return (
+          <div
+            key={b.membershipId}
+            className="flex justify-between items-center bg-white border border-gray-200 rounded-xl p-4 shadow-sm transition-shadow"
+          >
+            <div className="text-gray-800 font-medium">
+              {nameById[b.membershipId] ?? `Member ${b.membershipId}`}
+            </div>
+            <div>
+              <span
+                className={`inline-block rounded-full px-3 py-1 text-sm font-semibold tabular-nums ${pillClass}`}
+              >
+                ${Number(b.balance).toFixed(2)}
+              </span>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 };

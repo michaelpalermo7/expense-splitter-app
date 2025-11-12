@@ -7,6 +7,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -18,23 +19,25 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
 @Entity
-@Table(name="settlements")
+@Table(name = "settlements")
 public class Settlement {
 
     /* ==== attributes ==== */
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name="settlement_id")
+    @Column(name = "settlement_id")
     private Long settlementId;
 
     @NotNull
     @Positive
     @Digits(integer = 10, fraction = 2)
-    @Column(nullable = false, precision = 10, scale = 2) 
+    @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal amount;
 
-    public enum CurrencyCode { CAD, USD, EUR }
+    public enum CurrencyCode {
+        CAD, USD, EUR
+    }
 
     @NotNull
     @Enumerated(EnumType.STRING)
@@ -42,23 +45,27 @@ public class Settlement {
     private CurrencyCode currency = CurrencyCode.CAD;
 
     @NotNull
-    @Column(name="settled_at",nullable = false, columnDefinition="timestamptz", insertable = false, updatable = false)
+    @Column(name = "settled_at", nullable = false, columnDefinition = "timestamptz", insertable = false, updatable = false)
     private Instant settledAt;
 
     /* ==== relationships ==== */
-    //many to one users
-    @ManyToOne
-    @JoinColumn(name="payer_id", nullable=false)
-    private User payer;
 
-    //many to one users
-    @ManyToOne
-    @JoinColumn(name="payee_id", nullable=false)
-    private User payee;
+    // many-to-one: settlements -> membership (payer)
+    @NotNull
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "payer_membership_id", nullable = false)
+    private Membership payer;
 
-    //many to one groups
-    @ManyToOne
-    @JoinColumn(name="group_id", nullable=false)
+    // many-to-one: settlements -> membership (payee)
+    @NotNull
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "payee_membership_id", nullable = false)
+    private Membership payee;
+
+    // many-to-one: settlements -> groups
+    @NotNull
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "group_id", nullable = false)
     private Group group;
 
     /* ==== getters and setters ==== */
@@ -66,8 +73,9 @@ public class Settlement {
     public Long getSettlementId() {
         return settlementId;
     }
-    public void setSettlementId (Long settlementId) {
-        this.settlementId=settlementId;
+
+    public void setSettlementId(Long settlementId) {
+        this.settlementId = settlementId;
     }
 
     public BigDecimal getAmount() {
@@ -94,19 +102,19 @@ public class Settlement {
         this.settledAt = settledAt;
     }
 
-    public User getPayer() {
+    public Membership getPayer() {
         return payer;
     }
 
-    public void setPayer(User payer) {
+    public void setPayer(Membership payer) {
         this.payer = payer;
     }
 
-    public User getPayee() {
+    public Membership getPayee() {
         return payee;
     }
 
-    public void setPayee(User payee) {
+    public void setPayee(Membership payee) {
         this.payee = payee;
     }
 
@@ -117,6 +125,4 @@ public class Settlement {
     public void setGroup(Group group) {
         this.group = group;
     }
-
-
 }

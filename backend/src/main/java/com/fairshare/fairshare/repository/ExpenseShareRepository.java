@@ -14,4 +14,5 @@ public interface ExpenseShareRepository extends JpaRepository<ExpenseShare, Long
     List<ExpenseShare> findByExpense_Group_GroupId(Long groupId);
 
     List<ExpenseShare> findByExpense_ExpenseIdIn(List<Long> expenseIds);
+
 }

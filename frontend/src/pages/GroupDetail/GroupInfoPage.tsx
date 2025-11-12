@@ -1,94 +1,95 @@
+import { useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+
 import { useGroupInfo } from "../../hooks/useGroupInfo";
+import { useGroupBalancesByToken } from "../../hooks/useGroupBalances";
+import { useGroupExpensesByToken } from "../../hooks/useGroupExpenses";
+import { useGroupSettlementsByToken } from "../../hooks/useGroupSettlements";
+
 import MemberList from "../../components/MemberList";
 import ExpensesList from "../../components/ExpenseTable";
-import { useGroupExpenses } from "../../hooks/useGroupExpenses";
-import { useMemo } from "react";
-
-import PersonAddIcon from "@mui/icons-material/PersonAdd";
-import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
-import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import BalancesList from "../../components/BalancesTable";
-import { useGroupBalances } from "../../hooks/useGroupBalances";
 import SettlementsList from "../../components/SettlementsList";
-import { useGroupSettlements } from "../../hooks/useGroupSettlements";
+
+import { UserPlus } from "lucide-react";
+import FormButton from "../../components/FormButton";
 
 const GroupInfoPage = () => {
   const navigate = useNavigate();
-  const { id } = useParams<{ id: string }>();
-  const { group, members, deleteMember } = useGroupInfo(id);
-  const { expenses } = useGroupExpenses(id);
-  const { settlements } = useGroupSettlements(id);
+  const { token } = useParams<{ token: string }>();
 
-  const addMember = () => {
-    if (!id) return;
-    navigate(`/add-member/${id}`);
-  };
+  const { group, members, deleteMember } = useGroupInfo(token);
+  const { expenses } = useGroupExpensesByToken(token);
+  const { settlements } = useGroupSettlementsByToken(token);
+  const { balances } = useGroupBalancesByToken(token);
 
-  const addExpense = () => {
-    if (!id) return;
-    navigate(`/add-expense/${id}`);
-  };
-
-  const handleSettle = () => {
-    if (!id) return;
-    navigate(`/add-settlement/${id}`);
-  };
+  const addMember = () => token && navigate(`/add-member/${token}`);
+  const addExpense = () => token && navigate(`/add-expense/${token}`);
+  const handleSettle = () => token && navigate(`/add-settlement/${token}`);
 
   const nameById = useMemo(
-    () => Object.fromEntries(members.map((m) => [m.userId, m.userName])),
+    () =>
+      Object.fromEntries(members.map((m) => [m.membershipId, m.displayName])),
     [members]
   );
 
-  const { balances } = useGroupBalances(id);
+  const hasExpenses = (expenses ?? []).length > 0;
 
   return (
-    <div className="p-6 bg-white shadow-md rounded-lg">
-      <h2 className="text-2xl font-bold text-center mb-3">{group?.name}</h2>
-      <hr className="h-px my-6 bg-gray-200 border-0 dark:bg-gray-300" />
-
-      <div className="mb-4 text-left">
-        <h2 className="text-left text-xl font-semibold mb-2">Members</h2>
+    <div className="p-6 bg-white">
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-3xl font-bold">{group?.groupName}</h2>
+        <button
+          onClick={addMember}
+          className="cursor-pointer flex items-center gap-2 px-4 py-2 text-sm font-medium border border-black text-black rounded-full
+               hover:bg-black hover:text-white transition-all duration-200"
+        >
+          <UserPlus className="w-4 h-4" />
+        </button>
       </div>
-      <MemberList members={members} onDelete={deleteMember} />
-      <button
-        onClick={addMember}
-        className="cursor-pointer inline-flex items-center gap-2 text-blue-700 border border-blue-700 hover:bg-blue-800 hover:text-white focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 dark:text-blue-600 dark:border-blue-600 dark:hover:bg-blue-600 dark:hover:text-white dark:focus:ring-blue-800"
-      >
-        <PersonAddIcon fontSize="small" />
-        ADD
-      </button>
 
-      <hr className="h-px my-6 bg-gray-200 border-0 dark:bg-gray-300" />
-      <h2 className="text-left text-xl font-semibold mb-2 mt-6">Expenses</h2>
+      <MemberList
+        members={members.map((m) => ({
+          membershipId: m.membershipId,
+          displayName: m.displayName,
+        }))}
+        onDelete={(mid) => deleteMember(mid)}
+      />
+
+      <div className="mt-6 w-full  mb-6">
+        <FormButton label="Add Expense" onClick={addExpense} />
+      </div>
+      <hr className="h-px my-6 bg-gray-200 border-0" />
+
       <div className="mt-2 mb-10">
         <ExpensesList expenses={expenses} nameById={nameById} />
       </div>
-      <button
-        onClick={addExpense}
-        className="cursor-pointer inline-flex items-center gap-2 text-blue-700 border border-blue-700 hover:bg-blue-800 hover:text-white focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 dark:text-blue-600 dark:border-blue-600 dark:hover:bg-blue-600 dark:hover:text-white dark:focus:ring-blue-800"
-      >
-        <AddShoppingCartIcon fontSize="small" />
-        ADD
-      </button>
 
-      <hr className="h-px my-6 bg-gray-200 border-0 dark:bg-gray-300" />
-      <h2 className="text-left text-xl font-semibold mb-2 mt-6">Balances</h2>
-      <BalancesList balances={balances} nameById={nameById} />
+      {hasExpenses && (
+        <>
+          <div className="flex items-center justify-between mb-3">
+            <button
+              onClick={handleSettle}
+              className="cursor-pointer px-3 py-1.5 text-sm border border-black text-black rounded-full 
+             hover:bg-black hover:text-white 
+             focus:ring-4 focus:outline-none focus:ring-gray-400 
+             transition-all duration-200"
+              aria-label="Settle up"
+            >
+              Settle up
+            </button>
+          </div>
 
-      <button
-        onClick={handleSettle}
-        className="mt-10 cursor-pointer inline-flex items-center gap-2 text-blue-700 border border-blue-700 hover:bg-blue-800 hover:text-white focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 dark:text-blue-600 dark:border-blue-600 dark:hover:bg-blue-600 dark:hover:text-white dark:focus:ring-blue-800"
-      >
-        <AccountBalanceWalletIcon fontSize="small" />
-        SETTLE
-      </button>
-
-      <hr className="h-px my-6 bg-gray-200 border-0 dark:bg-gray-300" />
-      <h2 className="text-left text-xl font-semibold mb-2 mt-6">History</h2>
-      <div className="mt-2">
-        <SettlementsList settlements={settlements} nameById={nameById} />
-      </div>
+          <BalancesList balances={balances} nameById={nameById} />
+          <hr className="h-px my-6 bg-gray-200 border-0" />
+          <h2 className="text-center text-sm font-semibold mb-2 mt-6">
+            Settlement History
+          </h2>
+          <div className="mt-3">
+            <SettlementsList settlements={settlements} nameById={nameById} />
+          </div>
+        </>
+      )}
     </div>
   );
 };

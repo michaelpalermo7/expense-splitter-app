@@ -3,42 +3,49 @@ import ExpenseAddForm, {
   type ExpenseAddFormValues,
 } from "../../components/ExpenseAddForm";
 import { useNavigate, useParams } from "react-router-dom";
-import { addGroupExpense } from "../../services/ExpenseService";
+import { useEffect, useState } from "react";
+import { getGroupMembersByToken } from "../../services/GroupService";
+import { addExpenseByToken } from "../../services/ExpenseService";
+
+type MemberDTO = { membershipId: number; groupId: number; displayName: string };
 
 const ExpenseAddPage = () => {
   const navigate = useNavigate();
-  const { id } = useParams<{ id: string }>();
-  const groupId = Number(id);
+  const { token } = useParams<{ token: string }>();
+  const [members, setMembers] = useState<MemberDTO[]>([]);
+
+  useEffect(() => {
+    if (!token) return;
+    getGroupMembersByToken(token).then((res) => setMembers(res.data));
+  }, [token]);
 
   const handleCreate = async (
     values: ExpenseAddFormValues,
     _e: FormEvent<HTMLFormElement>
   ) => {
-    const { payerEmail, amount, currency, description, occurredAt } = values;
+    if (!token) return;
 
-    await addGroupExpense(groupId, {
-      payerEmail,
-      amount,
-      currency,
-      description,
-      occurredAt,
-    });
+    // convert to ISO string because backend expects that format
+    const payload = {
+      ...values,
+      occurredAt: new Date(values.occurredAt).toISOString(),
+    };
 
-    navigate(`/group-info/${groupId}`);
+    await addExpenseByToken(token, payload);
+    navigate(`/group/${token}`);
   };
 
   return (
     <div className="container mx-auto px-4">
-      <br />
-      <br />
       <div className="flex justify-center">
-        <div className="w-full md:w-1/2 bg-white">
-          <div className="p-6">
-            <h2 className="text-center text-2xl font-semibold mb-6">
-              Add Expense
-            </h2>
-            <ExpenseAddForm onSubmit={handleCreate} />
-          </div>
+        <div className="w-full  mx-auto">
+          <ExpenseAddForm
+            onSubmit={handleCreate}
+            members={members.map((m) => ({
+              membershipId: m.membershipId,
+              displayName: m.displayName,
+            }))}
+          />
         </div>
       </div>
     </div>

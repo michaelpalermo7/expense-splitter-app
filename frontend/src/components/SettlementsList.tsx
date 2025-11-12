@@ -1,7 +1,7 @@
 import type { FC } from "react";
 import type { Settlement } from "../types";
 import { fmtDate } from "../utils/date";
-import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+import { ChevronRight } from "lucide-react";
 
 type SettlementsListProps = {
   settlements: Settlement[];
@@ -13,47 +13,45 @@ const SettlementsList: FC<SettlementsListProps> = ({
   nameById,
 }) => {
   if (settlements.length === 0) {
-    return <p className="text-gray-500">No settlements yet.</p>;
+    return (
+      <div className="text-gray-500 text-center p-4 bg-gray-50 border border-gray-200 rounded-md">
+        No settlements yet.
+      </div>
+    );
   }
 
   return (
-    <div className="mb-20 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {settlements.map((s) => {
-        const payerName = nameById[s.payerId] ?? `User ${s.payerId}`;
-        const payeeName = nameById[s.payeeId] ?? `User ${s.payeeId}`;
+    <div className="flex flex-col gap-3">
+      {settlements.map((s, index) => {
+        const payerName =
+          nameById[s.payerMembershipId] ?? `Member ${s.payerMembershipId}`;
+        const payeeName =
+          nameById[s.payeeMembershipId] ?? `Member ${s.payeeMembershipId}`;
 
         return (
           <div
-            key={s.id}
-            className="group rounded-lg overflow-hidden border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow"
+            key={
+              s.id ??
+              `${s.payerMembershipId}-${s.payeeMembershipId}-${s.settledAt}-${index}`
+            }
+            className="flex justify-between items-start bg-white border border-gray-200 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow"
           >
-            <div className="bg-black p-3 text-white">
-              <div className="flex items-center justify-between">
-                <span className="text-xs uppercase tracking-wide opacity-90">
-                  Settlement
-                </span>
-                <span className="rounded-full bg-white/15 px-2 py-0.5 text-xs">
-                  {fmtDate(s.settledAt)}
-                </span>
+            <div>
+              <div className="font-semibold text-gray-800">
+                {payerName}{" "}
+                <ChevronRight className="inline w-4 h-4 text-gray-400 mx-1" />{" "}
+                {payeeName}
               </div>
+              <div className="text-sm text-gray-500">
+                {fmtDate(s.settledAt)}
+              </div>
+              <div className="text-sm text-gray-500">Settlement</div>
             </div>
 
-            <div className="p-4">
-              <div className="flex items-center gap-2 text-gray-700">
-                <span className="font-medium">{payerName}</span>
-                <ArrowForwardIosIcon
-                  fontSize="inherit"
-                  className="text-gray-400 scale-90"
-                />
-                <span className="font-medium">{payeeName}</span>
-              </div>
-
-              <div className="mt-4 flex items-center justify-between">
-                <span className="text-sm text-gray-500">Amount</span>
-                <span className="inline-block rounded-full px-3 py-1 text-sm font-semibold tabular-nums bg-blue-50 text-blue-700">
-                  ${s.amount.toFixed(2)}
-                </span>
-              </div>
+            <div>
+              <span className="inline-block rounded-full px-3 py-1 text-sm font-semibold tabular-nums bg-blue-50 text-blue-700">
+                ${Number(s.amount).toFixed(2)}
+              </span>
             </div>
           </div>
         );

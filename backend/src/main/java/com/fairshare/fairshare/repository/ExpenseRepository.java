@@ -11,4 +11,6 @@ import com.fairshare.fairshare.entity.Expense;
 public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     List<Expense> findByGroup_GroupId(Long groupId);
 
+    List<Expense> findByExpenseIdIn(List<Long> expenseIds);
+
 }

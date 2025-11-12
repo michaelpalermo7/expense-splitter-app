@@ -6,20 +6,18 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 @Entity
-@Table(name = "membership", uniqueConstraints = @UniqueConstraint(name = "uq_membership_user_group", columnNames = {
-        "user_id", "group_id" }))
+@Table(name = "membership")
 public class Membership {
 
     /* ==== attributes ==== */
@@ -33,26 +31,15 @@ public class Membership {
     @Column(name = "joined_at", nullable = false, columnDefinition = "timestamptz")
     private Instant joinedAt;
 
-    public enum Role {
-        ADMIN,
-        MEMBER
-    }
-
-    @NotNull
-    @Enumerated(EnumType.STRING)
-    @Column(name = "role", nullable = false)
-    private Role role = Role.MEMBER;
+    @NotBlank
+    @Column(name = "display_name", nullable = false, length = 100)
+    private String displayName;
 
     /* ==== relationships ==== */
-    // many to one - memberships to user - fk userId
-    @NotNull
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
 
-    // many to one - memberships to group - fk groupId
+    // many-to-one: membership -> group
     @NotNull
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "group_id", nullable = false)
     private Group group;
 
@@ -73,20 +60,12 @@ public class Membership {
         this.joinedAt = joinedAt;
     }
 
-    public Role getRole() {
-        return role;
+    public String getDisplayName() {
+        return displayName;
     }
 
-    public void setRole(Role role) {
-        this.role = role;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
     }
 
     public Group getGroup() {
@@ -96,5 +75,4 @@ public class Membership {
     public void setGroup(Group group) {
         this.group = group;
     }
-
 }

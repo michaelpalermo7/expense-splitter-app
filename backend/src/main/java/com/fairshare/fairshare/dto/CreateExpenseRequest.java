@@ -9,9 +9,10 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
 public record CreateExpenseRequest(
-                String payerEmail,
+                @NotNull Long payerMembershipId,
                 @NotNull @Positive BigDecimal amount,
                 Expense.CurrencyCode currency,
                 String description,
-                Instant occurredAt) {
+                Instant occurredAt,
+                Long[] participantMembershipIds) {
 }

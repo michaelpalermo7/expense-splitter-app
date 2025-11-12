@@ -1,44 +1,27 @@
+// hooks/useGroupInfo.ts
 import { useEffect, useState } from "react";
 import {
-  getGroupById,
-  getGroupMembers,
-  deleteGroupMember,
+  getGroupByToken,
+  getGroupMembersByToken,
+  deleteGroupMemberByToken,
 } from "../services/GroupService";
-import { getUserById } from "../services/UserService";
-import type { Group, MemberWithName, GroupMember } from "../types";
+import type { Group, GroupMember } from "../types";
 
-export function useGroupInfo(id?: string) {
+export function useGroupInfo(token?: string) {
   const [group, setGroup] = useState<Group>();
-  const [members, setMembers] = useState<MemberWithName[]>([]);
+  const [members, setMembers] = useState<GroupMember[]>([]);
 
   useEffect(() => {
-    const groupId = Number(id);
+    if (!token) return;
 
-    //fetch group
-    getGroupById(groupId).then((res) => setGroup(res.data));
+    getGroupByToken(token).then((res) => setGroup(res.data));
+    getGroupMembersByToken(token).then((res) => setMembers(res.data));
+  }, [token]);
 
-    //fetch members and user info
-    getGroupMembers(groupId).then(async (response) => {
-      const membersData = response.data;
-
-      const members = await Promise.all(
-        membersData.map(async (member: GroupMember) => {
-          const userRes = await getUserById(member.userId);
-          return { ...member, userName: userRes.data.userName };
-        })
-      );
-
-      setMembers(members);
-    });
-  }, [id]);
-
-  const deleteMember = async (userId: number) => {
-    if (!id) return;
-    await deleteGroupMember(Number(id), userId);
-
-    // remove the member by userId
-    const updatedMembers = members.filter((m) => m.userId !== userId);
-    setMembers(updatedMembers);
+  const deleteMember = async (membershipId: number) => {
+    if (!token) return;
+    await deleteGroupMemberByToken(token, membershipId);
+    setMembers((cur) => cur.filter((m) => m.membershipId !== membershipId));
   };
 
   return { group, members, deleteMember };

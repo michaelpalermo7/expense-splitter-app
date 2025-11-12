@@ -1,54 +1,46 @@
 import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import GroupForm, { type GroupFormValues } from "../../components/GroupForm";
-import { createUser, getUserByEmail } from "../../services/UserService";
-import { createGroup } from "../../services/GroupService";
+import GroupForm, {
+  type CreateGroupFormValues,
+} from "../../components/GroupForm";
+import {
+  createGroup,
+  addMemberByToken,
+  addMembersBulkByToken,
+} from "../../services/GroupService";
+import OwlIcon from "../../assets/Owlicon.png";
+import GraphicImage from "../../components/GraphicImage";
 
 const GroupAddPage = () => {
   const navigate = useNavigate();
 
   const handleCreate = async (
-    values: GroupFormValues,
+    values: CreateGroupFormValues,
     _e: FormEvent<HTMLFormElement>
   ) => {
-    const { userName, userEmail, name } = values;
+    const { groupName, memberNames } = values;
 
-    let creatorUserId: number;
+    const created = await createGroup({ groupName });
+    const token = created.data.inviteToken;
 
-    //see if user exists, if not create them
-    try {
-      const res = await getUserByEmail(userEmail);
-      creatorUserId = res.data.userId;
-    } catch (err: any) {
-      if (err?.response?.status !== 404) {
-        throw err;
+    if (memberNames?.length) {
+      if (memberNames.length === 1) {
+        await addMemberByToken(token, memberNames[0]);
+      } else {
+        await addMembersBulkByToken(token, memberNames);
       }
-      const created = await createUser({ userName, userEmail });
-      creatorUserId = created.data.userId;
     }
 
-    // use that new user id to create a group with that user in it as admin
-    await createGroup({
-      name,
-      creatorUserId,
-    });
-
-    navigate("/groups");
+    navigate(`/group/${token}/share`);
   };
 
   return (
-    <div className="container mx-auto px-4">
-      <br />
-      <br />
-      <div className="flex justify-center">
-        <div className="w-full md:w-1/2 bg-white shadow-lg rounded-lg">
-          <div className="p-6">
-            <h2 className="text-center text-2xl font-semibold mb-6">
-              Add Group
-            </h2>
-            <GroupForm onSubmit={handleCreate} />
-          </div>
-        </div>
+    <div className="flex flex-col items-center">
+      <div className="w-full max-w-md mx-auto">
+        <GroupForm onSubmit={handleCreate} />
+      </div>
+      <div className="mt-8 w-50">
+        <GraphicImage src={OwlIcon} alt="" />
       </div>
     </div>
   );

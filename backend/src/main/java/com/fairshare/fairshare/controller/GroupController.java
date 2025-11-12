@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,13 +18,17 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.fairshare.fairshare.dto.AddMemberRequest;
 import com.fairshare.fairshare.dto.CreateGroupRequest;
+import com.fairshare.fairshare.dto.CreateMemberRequest;
 import com.fairshare.fairshare.dto.GroupDTO;
 import com.fairshare.fairshare.dto.MembershipDTO;
 import com.fairshare.fairshare.service.GroupService;
 
+import jakarta.validation.Valid;
+
 @CrossOrigin("*")
+@Validated
 @RestController
-@RequestMapping("/groups")
+@RequestMapping("/group")
 public class GroupController {
 
     private final GroupService groupService;
@@ -32,45 +37,66 @@ public class GroupController {
         this.groupService = groupService;
     }
 
+    private Long groupIdFromToken(String token) throws NotFoundException {
+        return groupService.findByInviteToken(token).groupId();
+    }
+
     @PostMapping
-    public GroupDTO createGroup(@RequestBody CreateGroupRequest request) {
-        return groupService.createGroup(request.name(), request.creatorUserId());
+    public GroupDTO createGroup(@RequestBody @Valid CreateGroupRequest request) {
+        return groupService.createGroup(request.groupName());
     }
 
-    @DeleteMapping("/{id}")
+    @GetMapping("/{token}")
+    public GroupDTO getGroupByToken(@PathVariable String token) throws NotFoundException {
+        return groupService.findByInviteToken(token);
+    }
+
+    @DeleteMapping("/{token}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteGroup(@PathVariable("id") Long groupId)
+    public void deleteGroup(@PathVariable String token)
             throws NotFoundException, AccessDeniedException {
-        groupService.deleteGroup(groupId);
+        groupService.deleteGroup(groupIdFromToken(token));
     }
 
-    @PostMapping("/{id}/members")
+    @GetMapping("/{token}/members")
+    public List<MembershipDTO> listAllMembers(@PathVariable String token) throws NotFoundException {
+        return groupService.listAllMembers(groupIdFromToken(token));
+    }
+
+    @PostMapping("/{token}/members")
     public MembershipDTO addMember(
-            @PathVariable("id") Long groupId, @RequestBody AddMemberRequest request) throws NotFoundException {
-        return groupService.addMember(groupId, request.userId(), request.role());
+            @PathVariable String token,
+            @RequestBody @Valid AddMemberRequest request) throws NotFoundException {
+        return groupService.addMemberByName(groupIdFromToken(token), request.displayName());
     }
 
-    @DeleteMapping("/{id}/members/{userId}")
+    @PostMapping("/{token}/members/bulk")
+    @ResponseStatus(HttpStatus.CREATED)
+    public List<MembershipDTO> addMembersBulk(
+            @PathVariable String token,
+            @RequestBody @Valid CreateMemberRequest request) throws NotFoundException {
+        return groupService.addMembersByNames(groupIdFromToken(token),
+                java.util.Arrays.asList(request.names()));
+    }
+
+    @DeleteMapping("/{token}/members/{membershipId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void removeMember(@PathVariable("id") Long groupId, @PathVariable("userId") Long targetUserId)
+    public void removeMember(
+            @PathVariable String token,
+            @PathVariable Long membershipId)
             throws NotFoundException, AccessDeniedException {
-
-        groupService.removeMember(targetUserId, groupId);
+        groupService.removeMember(membershipId, groupIdFromToken(token));
     }
 
-    @GetMapping("/{id}/members")
-    public List<MembershipDTO> listAllMembers(@PathVariable Long id) throws NotFoundException {
-        return groupService.listAllMembers(id);
+    @GetMapping("/{token}/link")
+    public String getInviteLink(@PathVariable String token) throws NotFoundException {
+        // same token is the invite link
+        groupService.findByInviteToken(token);
+        return token;
     }
 
-    @GetMapping
-    public List<GroupDTO> listAllGroups() {
-        return groupService.listAllGroups();
+    @PostMapping("/{token}/link/rotate")
+    public String rotateInviteLink(@PathVariable String token) throws NotFoundException {
+        return groupService.rotateInviteLink(groupIdFromToken(token));
     }
-
-    @GetMapping("/{id}")
-    public GroupDTO getGroupById(@PathVariable Long id) throws NotFoundException {
-        return groupService.getGroupById(id);
-    }
-
 }

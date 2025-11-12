@@ -1,5 +1,6 @@
 import type { Expense } from "../types";
 import { fmtDate } from "../utils/date";
+import { Info } from "lucide-react";
 
 type ExpensesListProps = {
   expenses: Expense[];
@@ -8,66 +9,38 @@ type ExpensesListProps = {
 
 const ExpensesList = ({ expenses, nameById }: ExpensesListProps) => {
   if (expenses.length === 0) {
-    return <p className="text-gray-500">No expenses yet.</p>;
+    return (
+      <div className="flex items-center gap-2 p-3 text-gray-700 bg-gray-100 border border-gray-300 rounded-md text-sm mx-auto">
+        <Info className="w-4 h-4 text-black" />
+        <span>No expenses yet — create your first one to get started.</span>
+      </div>
+    );
   }
 
   return (
-    <div className="relative overflow-x-auto shadow-sm sm:rounded-lg bg-white hover:shadow-md">
-      <table className="w-full text-lg text-left text-gray-700">
-        {/* Header of table */}
-        <thead className="text-md text-white uppercase bg-black">
-          <tr>
-            <th
-              scope="col"
-              className="px-6 py-3 text-xs uppercase tracking-wide opacity-90 font-normal"
-            >
-              Description
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-xs uppercase tracking-wide opacity-90 font-normal"
-            >
-              Amount
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-xs uppercase tracking-wide opacity-90 font-normal"
-            >
-              Occurred At
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-xs uppercase tracking-wide opacity-90 font-normal"
-            >
-              Paid By
-            </th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {expenses.map((e) => (
-            <tr key={e.id} className="bg-white border-none">
-              <td className="px-6 py-4">
-                <span className="block truncate text-gray-700 font-medium">
-                  {e.description || "Untitled expense"}
-                </span>
-              </td>
-
-              <td className="px-6 py-4">
-                <span className="inline-block rounded-full px-3 py-1 text-sm font-semibold tabular-nums bg-blue-50 text-blue-700">
-                  ${Number(e.amount).toFixed(2)}
-                </span>
-              </td>
-
-              <td className="px-6 py-4">{fmtDate(e.occurredAt)}</td>
-
-              <td className="px-6 py-4">
-                {nameById[e.payerId] ?? `User ${e.payerId}`}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="flex flex-col gap-3">
+      {expenses.map((e) => (
+        <div
+          key={e.expenseId}
+          className="flex flex-col sm:flex-row sm:items-center justify-between bg-white border border-gray-200 rounded-xl p-4 shadow-sm transition-shadow"
+        >
+          <div>
+            <div className="text-gray-800 font-medium">
+              {e.description || "Untitled expense"}
+            </div>
+            <div className="text-sm text-gray-500">{fmtDate(e.occurredAt)}</div>
+            <div className="text-sm text-gray-500">
+              Paid by:{" "}
+              {nameById[e.payerMembershipId] ?? `Member ${e.payerMembershipId}`}
+            </div>
+          </div>
+          <div className="mt-2 sm:mt-0 sm:ml-4">
+            <span className="inline-block rounded-full px-3 py-1 text-sm font-semibold tabular-nums bg-blue-50 text-blue-700">
+              ${Number(e.amount).toFixed(2)}
+            </span>
+          </div>
+        </div>
+      ))}
     </div>
   );
 };

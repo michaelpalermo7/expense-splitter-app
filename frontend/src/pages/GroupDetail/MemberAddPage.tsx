@@ -1,57 +1,45 @@
-/* This is where user adding logic will reside */
-
 import type { FormEvent } from "react";
 import type { MemberAddFormValues } from "../../components/MemberAddForm";
-import { createUser, getUserByEmail } from "../../services/UserService";
 import { useNavigate, useParams } from "react-router-dom";
 import MemberAddForm from "../../components/MemberAddForm";
-import { addGroupMember } from "../../services/GroupService";
-
+import {
+  addGroupMemberByToken,
+  addMembersBulkByToken,
+} from "../../services/GroupService";
+import OwlIcon from "../../assets/Owlicon.png";
+import GraphicImage from "../../components/GraphicImage";
 const MemberAddPage = () => {
   const navigate = useNavigate();
-  const { id } = useParams<{ id: string }>();
-  const groupId = Number(id);
+  const { token } = useParams<{ token: string }>();
 
   const handleCreate = async (
     values: MemberAddFormValues,
     _e: FormEvent<HTMLFormElement>
   ) => {
-    const { userName, userEmail, userRole } = values;
+    if (!token) return;
 
-    let userId: number;
+    const names = (values.memberNames ?? [])
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (!names.length) return;
 
-    //see if user exists, if not create them
-    try {
-      const res = await getUserByEmail(userEmail);
-      userId = res.data.userId;
-    } catch (err: any) {
-      if (err?.response?.status !== 404) throw err;
-
-      const created = await createUser({ userName, userEmail });
-      userId = created.data.userId;
+    if (names.length === 1) {
+      await addGroupMemberByToken(token, { displayName: names[0] });
+    } else {
+      await addMembersBulkByToken(token, names);
     }
 
-    // add user to group
-    await addGroupMember(groupId, {
-      userId,
-      role: userRole.toUpperCase(),
-    });
-
-    navigate(`/group-info/${groupId}`);
+    navigate(`/group/${token}`);
   };
+
   return (
-    <div className="container mx-auto px-4">
-      <br />
-      <br />
-      <div className="flex justify-center">
-        <div className="w-full md:w-1/2 bg-white shadow-lg rounded-lg">
-          <div className="p-6">
-            <h2 className="text-center text-2xl font-semibold mb-6">
-              Add Member
-            </h2>
-            <MemberAddForm onSubmit={handleCreate} />
-          </div>
-        </div>
+    <div className="flex flex-col items-center">
+      <div className="w-full max-w-md mx-auto">
+        <MemberAddForm onSubmit={handleCreate} />
+      </div>
+
+      <div className="mt-8 w-50">
+        <GraphicImage src={OwlIcon} alt="Owl icon" />
       </div>
     </div>
   );

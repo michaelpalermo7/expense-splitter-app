@@ -1,9 +1,9 @@
 import { Link } from "react-router-dom";
-import OwelyLogoWhite from "../assets/OwelyLogoWhite.png";
+import OwelyLogoWhite from "../assets/IconOwelyApp.png";
 
 const Header = () => {
   return (
-    <header className="w-full bg-black shadow-sm flex justify-center items-center h-16 md:h-20">
+    <header className="w-full bg-white flex justify-center items-center h-16 md:h-20">
       <Link
         to="/"
         aria-label="Go to home"

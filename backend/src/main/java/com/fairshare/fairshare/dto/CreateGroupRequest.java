@@ -1,9 +1,8 @@
 package com.fairshare.fairshare.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 public record CreateGroupRequest(
-    @NotBlank String name,
-    @NotNull Long creatorUserId
-) {}
+        @NotBlank @Size(max = 255) String groupName) {
+}

@@ -1,17 +1,12 @@
 import { useEffect, useState } from "react";
-import { getGroupBalances } from "../services/ExpenseService";
+import { getGroupBalancesByToken } from "../services/ExpenseService";
 import type { Balance } from "../types";
 
-export const useGroupBalances = (groupId?: string | number) => {
+export function useGroupBalancesByToken(token?: string) {
   const [balances, setBalances] = useState<Balance[]>([]);
-
   useEffect(() => {
-    if (!groupId) return;
-
-    getGroupBalances(Number(groupId)).then((res) => {
-      setBalances(res.data);
-    });
-  }, [groupId]);
-
+    if (!token) return;
+    getGroupBalancesByToken(token).then((res) => setBalances(res.data));
+  }, [token]);
   return { balances };
-};
+}
