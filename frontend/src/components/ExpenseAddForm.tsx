@@ -202,7 +202,7 @@ const ExpenseAddForm = ({ members, onSubmit }: ExpenseAddFormProps) => {
       )}
 
       <div className="flex flex-col items-center gap-3 mt-6">
-        <PrimaryButton label="Add Member(s)" />
+        <PrimaryButton label="Add Expense" />
         <BackButton label="Back" onClick={() => navigate(-1)} />
       </div>
     </form>

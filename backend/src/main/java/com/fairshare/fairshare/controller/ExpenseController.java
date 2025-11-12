@@ -28,7 +28,7 @@ import jakarta.validation.Valid;
 @CrossOrigin("*")
 @Validated
 @RestController
-@RequestMapping("/group/{token}")
+@RequestMapping("/api/group/{token}")
 public class ExpenseController {
 
     private final ExpenseService expenseService;

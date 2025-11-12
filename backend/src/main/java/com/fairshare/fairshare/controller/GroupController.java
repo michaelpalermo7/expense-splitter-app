@@ -28,7 +28,7 @@ import jakarta.validation.Valid;
 @CrossOrigin("*")
 @Validated
 @RestController
-@RequestMapping("/group")
+@RequestMapping("/api/group")
 public class GroupController {
 
     private final GroupService groupService;
