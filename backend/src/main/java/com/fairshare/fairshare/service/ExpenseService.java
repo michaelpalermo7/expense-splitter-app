@@ -234,8 +234,8 @@ public class ExpenseService {
             Long payerId = s.getPayer().getMembershipId();
             Long payeeId = s.getPayee().getMembershipId();
             BigDecimal amt = s.getAmount();
-            balances.put(payerId, balances.get(payerId).subtract(amt));
-            balances.put(payeeId, balances.get(payeeId).add(amt));
+            balances.put(payerId, balances.get(payerId).add(amt));
+            balances.put(payeeId, balances.get(payeeId).subtract(amt));
         }
 
         // normalize balances to ensure they sum to zero
