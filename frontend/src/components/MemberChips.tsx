@@ -10,7 +10,7 @@ type Props = {
 };
 
 export default function MemberChipsInput({
-  label = "Member Name",
+  label = "Member Name(s)",
   placeholder = "Olivia",
   value,
   onChange,
@@ -60,8 +60,8 @@ export default function MemberChipsInput({
   };
 
   return (
-    <div className="space-y-2">
-      <label className="text-sm font-medium text-gray-700">{label}</label>
+    <div className="flex flex-col">
+      <label className="text-sm font-medium text-gray-700 mb-2">{label}</label>
 
       <div className="flex gap-2">
         <input

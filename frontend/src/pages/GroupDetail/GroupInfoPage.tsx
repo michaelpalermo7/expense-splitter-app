@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { Wallet } from "lucide-react";
 
 import { useGroupInfo } from "../../hooks/useGroupInfo";
 import { useGroupBalancesByToken } from "../../hooks/useGroupBalances";
@@ -39,12 +40,16 @@ const GroupInfoPage = () => {
     <div className="p-6 bg-white">
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-3xl font-bold">{group?.groupName}</h2>
+
         <button
           onClick={addMember}
-          className="cursor-pointer flex items-center gap-2 px-4 py-2 text-sm font-medium border border-black text-black rounded-full
-               hover:bg-black hover:text-white transition-all duration-200"
+          className="flex items-center gap-2 px-4 py-2 text-sm font-medium 
+                 border border-black text-black rounded-full
+                 hover:bg-black hover:text-white 
+                 transition-all duration-200 cursor-pointer"
         >
           <UserPlus className="w-4 h-4" />
+          <span>Add</span>
         </button>
       </div>
 
@@ -67,16 +72,17 @@ const GroupInfoPage = () => {
 
       {hasExpenses && (
         <>
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex justify-end mb-3">
             <button
               onClick={handleSettle}
-              className="cursor-pointer px-3 py-1.5 text-sm border border-black text-black rounded-full 
-             hover:bg-black hover:text-white 
-             focus:ring-4 focus:outline-none focus:ring-gray-400 
-             transition-all duration-200"
+              className="flex items-center gap-2 cursor-pointer px-3 py-1.5 text-sm border border-black text-black rounded-full 
+           hover:bg-black hover:text-white 
+           focus:ring-4 focus:outline-none focus:ring-gray-400 
+           transition-all duration-200"
               aria-label="Settle up"
             >
-              Settle up
+              <Wallet className="w-4 h-4" />
+              <span>Settle</span>
             </button>
           </div>
 

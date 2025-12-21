@@ -27,7 +27,7 @@ const MemberAddForm = ({ onSubmit }: MemberAddFormProps) => {
   return (
     <form onSubmit={handleSubmit} className="space-y-5 p-4">
       <MemberChipsInput
-        label="Member Name"
+        label="Member Name(s)"
         placeholder="Olivia"
         value={members}
         onChange={setMembers}

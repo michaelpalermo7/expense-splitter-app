@@ -40,3 +40,6 @@ export function addGroupMemberByToken(
 export function getGroupInviteLink(token: string) {
   return api.get<string>(`/group/${token}/link`);
 }
+
+export const deleteGroup = (token: string) =>
+  api.delete<void>(`/group/${token}`);

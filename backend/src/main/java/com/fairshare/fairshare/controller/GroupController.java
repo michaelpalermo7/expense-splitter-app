@@ -90,7 +90,6 @@ public class GroupController {
 
     @GetMapping("/{token}/link")
     public String getInviteLink(@PathVariable String token) throws NotFoundException {
-        // same token is the invite link
         groupService.findByInviteToken(token);
         return token;
     }

@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
-import LabeledInput from "./LabeledInput";
 import PrimaryButton from "./FormButton";
 import MemberChipsInput from "./MemberChips";
+import LabeledInputBig from "./LabeledInputBig";
 
 export type CreateGroupFormValues = {
   groupName: string;
@@ -26,7 +26,7 @@ export default function GroupForm({ onSubmit }: GroupFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5 p-4">
-      <LabeledInput
+      <LabeledInputBig
         id="group-name"
         label="Group Name"
         placeholder="Trip to NYC"
@@ -38,7 +38,7 @@ export default function GroupForm({ onSubmit }: GroupFormProps) {
       />
 
       <MemberChipsInput
-        label="Member Name"
+        label="Member Name(s)"
         placeholder="Olivia"
         value={members}
         onChange={setMembers}
