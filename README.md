@@ -1,13 +1,10 @@
-# OWELY: Full-Stack Expense Splitter 
-A web application that helps groups or roommates split shared expenses easily and fairly. 
+# OWELY: Group Expense Splitter Platform
+A web application that helps groups or roommates split shared expenses easily and fairly. No login required.
 
 ## Live Demo
 https://owely.io/  
 
 API Documentation (Swagger): https://owely.io/swagger-ui/index.html#/
-
-> The frontend is deployed on **Vercel**, and the backend API is hosted on **Render**.  
-> Changes pushed to the `main` branch are automatically deployed through GitHub Actions CI/CD.
 
 ## Table of Contents 
 - [About](#about)
