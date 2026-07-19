@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import FormButton from "../../components/FormButton";
 import GraphicImage from "../../components/GraphicImage";
-import Graphic from "../../assets/SittingGraphic.png";
+import Graphic from "../../assets/TravelGraphic.png";
 import TextBlock from "../../components/TextBlock";
 import ChipLabel from "../../components/ChipLabel";
 import HowItWorks from "../../components/HowItWorks";
@@ -10,8 +10,8 @@ const HomePage = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="flex flex-col items-center text-center px-4 py-5">
-      <h1 className=" max-w-sm mx-auto text-4xl md:text-3xl font-quicksand font-bold text-[#000000] leading-tight mb-6">
+    <div className="flex flex-col items-center text-center px-8 py-5">
+      <h1 className="w-full text-3xl md:text-4xl font-quicksand font-bold text-[#000000] leading-tight mb-6">
         Whooo paid who? We’ll keep track.
       </h1>
 
@@ -24,14 +24,14 @@ const HomePage = () => {
         </TextBlock>
       </div>
 
-      <div className="mt-6 w-full max-w-sm mx-auto">
+      <div className="mt-6 w-full">
         <FormButton
           label="Get Started"
           onClick={() => navigate("/add-group")}
         />
       </div>
 
-      <div className="w-full max-w-sm mx-auto mb-6 mt-16">
+      <div className="w-full mb-6 mt-16">
         <h3 className="text-xl font-semibold text-black font-quicksand">
           For all types of group events
         </h3>
@@ -47,7 +47,7 @@ const HomePage = () => {
         <HowItWorks></HowItWorks>
       </div>
 
-      <div className="mt-6 w-full max-w-sm mx-auto">
+      <div className="mt-6 w-full">
         <FormButton
           label="Get Started"
           onClick={() => navigate("/add-group")}

@@ -41,5 +41,8 @@ export function getGroupInviteLink(token: string) {
   return api.get<string>(`/group/${token}/link`);
 }
 
+export const rotateInviteLink = (token: string) =>
+  api.post<string>(`/group/${encodeURIComponent(token)}/link/rotate`);
+
 export const deleteGroup = (token: string) =>
   api.delete<void>(`/group/${token}`);

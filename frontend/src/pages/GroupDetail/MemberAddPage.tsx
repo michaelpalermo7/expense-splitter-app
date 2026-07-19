@@ -34,11 +34,11 @@ const MemberAddPage = () => {
 
   return (
     <div className="flex flex-col items-center">
-      <div className="w-full max-w-md mx-auto">
+      <div className="w-full">
         <MemberAddForm onSubmit={handleCreate} />
       </div>
 
-      <div className="mt-8 w-50">
+      <div className="mt-8 w-48">
         <GraphicImage src={OwlIcon} alt="Owl icon" />
       </div>
     </div>

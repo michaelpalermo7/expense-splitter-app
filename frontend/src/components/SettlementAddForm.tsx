@@ -58,7 +58,7 @@ const SettlementAddForm = ({ members, onSubmit }: SettlementAddFormProps) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-6 bg-white p-6">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-6 bg-white p-6 lg:p-8">
       <div className="flex flex-col gap-2 text-left">
         <label className={fieldLabel}>Payer</label>
         <select
@@ -120,11 +120,9 @@ const SettlementAddForm = ({ members, onSubmit }: SettlementAddFormProps) => {
         required
       />
 
-      <div className="mt-2 flex flex-col gap-3 items-stretch">
+      <div className="flex flex-col items-center gap-3 mt-6">
         <FormButton label="Settle" />
-        <div className="w-full">
-          <BackButton label="Back" onClick={() => navigate(-1)} />
-        </div>
+        <BackButton label="Back" onClick={() => navigate(-1)} />
       </div>
     </form>
   );

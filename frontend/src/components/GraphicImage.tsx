@@ -6,7 +6,11 @@ interface GraphicImageProps {
 const GraphicImage = ({ src, alt }: GraphicImageProps) => {
   return (
     <div className="w-full mx-auto">
-      <img src={src} alt={alt} className="w-full h-full object-contain" />
+      <img
+        src={src}
+        alt={alt}
+        className="w-full h-full object-contain rounded-lg"
+      />
     </div>
   );
 };

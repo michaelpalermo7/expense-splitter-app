@@ -13,6 +13,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -26,6 +27,10 @@ public class Membership {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "membership_id")
     private Long membershipId;
+
+    @Version
+    @Column(name = "version", nullable = false)
+    private Long version;
 
     @CreationTimestamp
     @Column(name = "joined_at", nullable = false, columnDefinition = "timestamptz")

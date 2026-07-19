@@ -16,4 +16,6 @@ public interface MembershipRepository extends JpaRepository<Membership, Long> {
     boolean existsByGroup_GroupIdAndDisplayNameIgnoreCase(Long groupId, String displayName);
 
     List<Membership> findByGroup_GroupId(Long groupId);
+
+    long countByGroup_GroupId(Long groupId);
 }

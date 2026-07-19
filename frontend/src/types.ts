@@ -29,6 +29,8 @@ export interface CreateMemberRequest {
 }
 
 /* ===== EXPENSES ===== */
+export type SplitMode = "EQUAL" | "EXACT" | "PERCENTAGE" | "SHARES";
+
 export type Share = {
   membershipId: number;
   shareAmount: number;
@@ -44,6 +46,7 @@ export type Expense = {
   description?: string | null;
   occurredAt: string; // ISO
   createdAt: string; // ISO
+  splitMode: SplitMode;
   shares?: Share[]; // present in list/detail responses
 };
 
@@ -59,6 +62,8 @@ export type ExpenseCreate = {
   description?: string;
   occurredAt: string;
   participantMembershipIds?: number[];
+  splitMode?: SplitMode;
+  splitValues?: Record<number, number>;
 };
 
 /* ===== SETTLEMENTS ===== */

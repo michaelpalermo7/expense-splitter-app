@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
@@ -43,6 +44,7 @@ class ExpenseFlowIT {
         // create group
         Group g = new Group();
         g.setGroupName("Trip");
+        g.setInviteToken(UUID.randomUUID().toString().replace("-", ""));
         g = groupRepository.save(g);
 
         // add memberships (Alice, Bob)

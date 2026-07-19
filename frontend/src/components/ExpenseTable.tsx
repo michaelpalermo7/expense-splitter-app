@@ -35,7 +35,7 @@ const ExpensesList = ({ expenses, nameById }: ExpensesListProps) => {
             </div>
           </div>
           <div className="mt-2 sm:mt-0 sm:ml-4">
-            <span className="inline-block rounded-full px-3 py-1 text-sm font-semibold tabular-nums bg-blue-50 text-blue-700">
+            <span className="inline-block rounded-full px-3 py-1 text-sm font-semibold tabular-nums text-blue-700">
               ${Number(e.amount).toFixed(2)}
             </span>
           </div>

@@ -36,9 +36,9 @@ const ExpenseAddPage = () => {
   };
 
   return (
-    <div className="container mx-auto px-4">
+    <div className="container mx-auto">
       <div className="flex justify-center">
-        <div className="w-full  mx-auto">
+        <div className="w-full mx-auto">
           <ExpenseAddForm
             onSubmit={handleCreate}
             members={members.map((m) => ({

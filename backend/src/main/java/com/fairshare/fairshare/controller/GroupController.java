@@ -6,7 +6,6 @@ import java.util.List;
 import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -25,7 +24,6 @@ import com.fairshare.fairshare.service.GroupService;
 
 import jakarta.validation.Valid;
 
-@CrossOrigin("*")
 @Validated
 @RestController
 @RequestMapping("/api/group")

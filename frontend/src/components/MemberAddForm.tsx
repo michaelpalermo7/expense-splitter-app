@@ -25,7 +25,7 @@ const MemberAddForm = ({ onSubmit }: MemberAddFormProps) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5 p-4">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-6 p-6 lg:p-8">
       <MemberChipsInput
         label="Member Name(s)"
         placeholder="Olivia"
@@ -33,7 +33,7 @@ const MemberAddForm = ({ onSubmit }: MemberAddFormProps) => {
         onChange={setMembers}
       />
 
-      <div className="flex flex-col items-center gap-3 pt-8">
+      <div className="flex flex-col items-center gap-3 mt-6">
         <FormButton label="Add Member(s)" />
         <BackButton label="Back" onClick={() => navigate(-1)} />
       </div>

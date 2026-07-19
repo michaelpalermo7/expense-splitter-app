@@ -65,7 +65,8 @@ export default function MemberChipsInput({
 
       <div className="flex gap-2">
         <input
-          className="flex-1 rounded-full border border-gray-300 px-4 py-2.5 text-[15px] outline-none focus:border-gray-500"
+          className="flex-1 rounded-md border border-gray-300 px-3 py-2 outline-none
+                     focus:border-gray-500 focus:ring-2 focus:ring-gray-300"
           placeholder={placeholder}
           value={input}
           onChange={handleChange}
@@ -74,7 +75,8 @@ export default function MemberChipsInput({
         <button
           type="button"
           onClick={() => add(input)}
-          className="rounded-full px-5 py-2.5 text-white font-semibold bg-black disabled:opacity-50"
+          className="cursor-pointer rounded-lg px-5 py-2 text-white font-semibold bg-black disabled:opacity-50
+                     transition-all duration-200"
           disabled={!normalize(input)}
         >
           <UserPlus className="w-5 h-5" />
@@ -86,13 +88,13 @@ export default function MemberChipsInput({
           {value.map((name, i) => (
             <span
               key={`${name}-${i}`}
-              className="inline-flex items-center gap-2 rounded-full border border-gray-300 px-3 py-1.5 text-sm text-gray-800"
+              className="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-800"
             >
               {name.toLowerCase()}
               <button
                 type="button"
                 onClick={() => remove(i)}
-                className="text-gray-400 hover:text-gray-600"
+                className="cursor-pointer text-gray-400 hover:text-gray-600"
                 aria-label={`Remove ${name}`}
               >
                 ×

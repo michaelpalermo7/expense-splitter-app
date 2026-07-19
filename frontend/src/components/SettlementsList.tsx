@@ -34,10 +34,10 @@ const SettlementsList: FC<SettlementsListProps> = ({
               s.id ??
               `${s.payerMembershipId}-${s.payeeMembershipId}-${s.settledAt}-${index}`
             }
-            className="flex justify-between items-start bg-white border border-gray-200 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow"
+            className="flex justify-between items-center bg-white border border-gray-200 rounded-xl p-4 shadow-sm transition-shadow"
           >
             <div>
-              <div className="font-semibold text-gray-800">
+              <div className="font-medium text-gray-800">
                 {payerName}{" "}
                 <ChevronRight className="inline w-4 h-4 text-gray-400 mx-1" />{" "}
                 {payeeName}
@@ -49,7 +49,7 @@ const SettlementsList: FC<SettlementsListProps> = ({
             </div>
 
             <div>
-              <span className="inline-block rounded-full px-3 py-1 text-sm font-semibold tabular-nums bg-blue-50 text-blue-700">
+              <span className="inline-block rounded-full px-3 py-1 text-sm font-semibold tabular-nums text-blue-700">
                 ${Number(s.amount).toFixed(2)}
               </span>
             </div>

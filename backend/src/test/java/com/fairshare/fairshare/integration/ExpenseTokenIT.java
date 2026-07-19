@@ -68,12 +68,14 @@ class ExpenseTokenIT {
                                 Expense.CurrencyCode.CAD,
                                 "Dinner",
                                 Instant.parse("2025-01-01T00:00:00Z"),
-                                new Long[] { alice.membershipId(), bob.membershipId() });
+                                new Long[] { alice.membershipId(), bob.membershipId() },
+                                null,
+                                null);
 
                 String expenseBody = objectMapper.writeValueAsString(expenseReq);
 
                 String expenseResp = mockMvc.perform(
-                                post("/group/{token}/expenses", token)
+                                post("/api/group/{token}/expenses", token)
                                                 .contentType(MediaType.APPLICATION_JSON)
                                                 .content(expenseBody))
                                 .andExpect(status().isCreated())
@@ -86,7 +88,7 @@ class ExpenseTokenIT {
                 assertThat(expense.shares()).hasSize(2);
 
                 // get balances via token route
-                String balanceResp = mockMvc.perform(get("/group/{token}/balances", token))
+                String balanceResp = mockMvc.perform(get("/api/group/{token}/balances", token))
                                 .andExpect(status().isOk())
                                 .andReturn().getResponse().getContentAsString();
 
@@ -103,7 +105,7 @@ class ExpenseTokenIT {
                 assertThat(balMap.get(bob.membershipId())).isEqualByComparingTo("-20.00");
 
                 // invalid token should 404
-                mockMvc.perform(get("/group/{token}/balances", "nonexistent"))
+                mockMvc.perform(get("/api/group/{token}/balances", "nonexistent"))
                                 .andExpect(status().isNotFound());
         }
 }

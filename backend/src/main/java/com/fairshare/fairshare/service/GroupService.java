@@ -173,6 +173,11 @@ public class GroupService {
             throw new AccessDeniedException("Membership does not belong to this group.");
         }
 
+        long memberCount = membershipRepository.countByGroup_GroupId(groupId);
+        if (memberCount <= 1) {
+            throw new IllegalArgumentException("Cannot remove the last member of a group.");
+        }
+
         membershipRepository.delete(target);
     }
 
@@ -222,15 +227,4 @@ public class GroupService {
         groupRepository.delete(group);
     }
 
-    /**
-     * Retrieves all groups.
-     *
-     * @return a list of {@link GroupDTO} objects representing all groups
-     */
-    @Transactional(readOnly = true)
-    public java.util.List<GroupDTO> listAllGroups() {
-        return groupRepository.findAll().stream()
-                .map(g -> new GroupDTO(g.getGroupId(), g.getGroupName(), g.getGroupCreatedAt(), g.getInviteToken()))
-                .toList();
-    }
 }

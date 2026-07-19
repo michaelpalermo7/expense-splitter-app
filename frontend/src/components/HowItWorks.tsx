@@ -43,7 +43,7 @@ export default function HowItWorks() {
       {steps.map((step, index) => (
         <div
           key={index}
-          className="flex flex-col items-center text-center space-y-4 w-full max-w-md"
+          className="flex flex-col items-center text-center space-y-4 w-full"
         >
           <h3 className="text-xl font-semibold text-black font-quicksand">
             {step.title}

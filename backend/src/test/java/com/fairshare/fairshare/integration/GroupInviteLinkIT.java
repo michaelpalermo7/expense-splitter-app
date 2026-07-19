@@ -42,7 +42,7 @@ class GroupInviteLinkIT {
     void inviteLink_create_resolve_get_rotate_404_and_delete_by_token() throws Exception {
         String createBody = objectMapper.writeValueAsString(new CreateGroupRequest("Trip"));
         String createResp = mockMvc.perform(
-                post("/group")
+                post("/api/group")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(createBody))
                 .andExpect(status().isOk())
@@ -57,7 +57,7 @@ class GroupInviteLinkIT {
         assertThat(token1.length()).isLessThanOrEqualTo(64);
         assertThat(token1).matches("^[A-Za-z0-9_-]+$");
 
-        String resolveResp = mockMvc.perform(get("/group/{token}", token1))
+        String resolveResp = mockMvc.perform(get("/api/group/{token}", token1))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
@@ -67,12 +67,12 @@ class GroupInviteLinkIT {
         Instant createdAt = resolved.groupCreatedAt();
         assertThat(createdAt).isNotNull();
 
-        String gotToken = mockMvc.perform(get("/group/{token}/link", token1))
+        String gotToken = mockMvc.perform(get("/api/group/{token}/link", token1))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
         assertThat(gotToken).isEqualTo(token1);
 
-        String token2 = mockMvc.perform(post("/group/{token}/link/rotate", token1))
+        String token2 = mockMvc.perform(post("/api/group/{token}/link/rotate", token1))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
@@ -80,19 +80,19 @@ class GroupInviteLinkIT {
         assertThat(token2).matches("^[A-Za-z0-9_-]+$");
         assertThat(token2).isNotEqualTo(token1);
 
-        String resolve2 = mockMvc.perform(get("/group/{token}", token2))
+        String resolve2 = mockMvc.perform(get("/api/group/{token}", token2))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
         GroupDTO resolved2 = objectMapper.readValue(resolve2, GroupDTO.class);
         assertThat(resolved2.groupId()).isEqualTo(groupId);
 
-        mockMvc.perform(get("/group/{token}", token1))
+        mockMvc.perform(get("/api/group/{token}", token1))
                 .andExpect(status().isNotFound());
 
-        mockMvc.perform(get("/group/{token}", "thisTokenDoesNotExist"))
+        mockMvc.perform(get("/api/group/{token}", "thisTokenDoesNotExist"))
                 .andExpect(status().isNotFound());
 
-        mockMvc.perform(delete("/group/{token}", token2))
+        mockMvc.perform(delete("/api/group/{token}", token2))
                 .andExpect(status().isNoContent());
     }
 }

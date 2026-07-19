@@ -14,7 +14,7 @@ const FormButton = ({ label, onClick }: FormButtonProps) => {
            bg-black text-white border border-black
            hover:bg-transparent hover:text-black
             focus:outline-none 
-           font-medium rounded-3xl text-md px-5 py-4
+           font-medium rounded-lg text-md px-5 py-4
            transition-all duration-200"
     >
       {label}

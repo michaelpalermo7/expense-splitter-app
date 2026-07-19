@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.util.List;
 
 import com.fairshare.fairshare.entity.Expense;
+import com.fairshare.fairshare.entity.SplitMode;
 
 public record ExpenseDTO(
         Long expenseId,
@@ -15,5 +16,6 @@ public record ExpenseDTO(
         String description,
         Instant occurredAt,
         Instant createdAt,
+        SplitMode splitMode,
         List<ShareDTO> shares) {
 }

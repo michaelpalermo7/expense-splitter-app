@@ -21,6 +21,7 @@ import com.fairshare.fairshare.entity.Expense;
 import com.fairshare.fairshare.entity.ExpenseShare;
 import com.fairshare.fairshare.entity.Membership;
 import com.fairshare.fairshare.entity.Settlement;
+import com.fairshare.fairshare.entity.SplitMode;
 import com.fairshare.fairshare.repository.ExpenseRepository;
 import com.fairshare.fairshare.repository.ExpenseShareRepository;
 import com.fairshare.fairshare.repository.GroupRepository;
@@ -50,9 +51,24 @@ public class ExpenseService {
     }
 
     /**
-     * Creates a new expense within a group and splits the amount equally among the
-     * specified participants.
-     * 
+     * Backward-compatible overload that defaults to EQUAL split with no custom values.
+     */
+    @Transactional
+    public ExpenseDTO createExpense(
+            Long groupId,
+            Long payerMembershipId,
+            BigDecimal amount,
+            Expense.CurrencyCode currency,
+            String desc,
+            Instant occurredAt) throws NotFoundException, AccessDeniedException {
+        return createExpense(groupId, payerMembershipId, amount, currency, desc, occurredAt,
+                null, null, (Long[]) null);
+    }
+
+    /**
+     * Creates a new expense within a group and splits the amount among the
+     * specified participants according to the given split mode.
+     *
      * @param groupId                  the ID of the group in which the expense is
      *                                 created
      * @param payerMembershipId        the membership ID of the user who paid for
@@ -62,6 +78,8 @@ public class ExpenseService {
      * @param currency                 currency, defaults to CAD
      * @param desc                     description of expense (optional)
      * @param occurredAt               when expenses occured, defaults to now
+     * @param splitMode                split mode (EQUAL, EXACT, PERCENTAGE, SHARES)
+     * @param splitValues              map of membershipId to value for non-EQUAL modes
      * @param participantMembershipIds membership IDs participating in the expense;
      * @return the created expense represented as an {@link ExpenseDTO}
      * @throws NotFoundException        if group, payer, or any participant does not
@@ -81,6 +99,8 @@ public class ExpenseService {
             Expense.CurrencyCode currency,
             String desc,
             Instant occurredAt,
+            SplitMode splitMode,
+            Map<Long, BigDecimal> splitValues,
             Long... participantMembershipIds) throws NotFoundException, AccessDeniedException {
 
         if (!groupRepository.existsById(groupId)) {
@@ -97,6 +117,8 @@ public class ExpenseService {
             throw new IllegalArgumentException("Expense amount must be greater than 0");
         }
         BigDecimal normalizedAmount = amount.setScale(2, RoundingMode.HALF_UP);
+
+        SplitMode mode = splitMode != null ? splitMode : SplitMode.EQUAL;
 
         final List<Membership> participants;
         if (participantMembershipIds != null && participantMembershipIds.length > 0) {
@@ -133,31 +155,100 @@ public class ExpenseService {
         e.setCurrency(currency != null ? currency : Expense.CurrencyCode.CAD);
         e.setDescription(desc);
         e.setOccurredAt(occurredAt != null ? occurredAt : Instant.now());
+        e.setSplitMode(mode);
 
         Expense saved = expenseRepository.save(e);
 
         int n = participants.size();
-        BigDecimal per = normalizedAmount
-                .divide(BigDecimal.valueOf(n), 2, RoundingMode.HALF_UP);
-
-        BigDecimal runningTotal = BigDecimal.ZERO;
         List<ShareDTO> shares = new ArrayList<>(n);
 
-        for (int i = 0; i < n; i++) {
-            Membership m = participants.get(i);
-            BigDecimal shareAmount = (i < n - 1)
-                    ? per
-                    : normalizedAmount.subtract(runningTotal);
+        switch (mode) {
+            case EQUAL -> {
+                BigDecimal per = normalizedAmount
+                        .divide(BigDecimal.valueOf(n), 2, RoundingMode.HALF_UP);
+                BigDecimal runningTotal = BigDecimal.ZERO;
 
-            ExpenseShare es = new ExpenseShare();
-            es.setExpense(saved);
-            es.setMembership(m);
-            es.setShareAmount(shareAmount);
-            es.setShareRatio(null);
-            expenseShareRepository.save(es);
+                for (int i = 0; i < n; i++) {
+                    Membership m = participants.get(i);
+                    BigDecimal shareAmount = (i < n - 1)
+                            ? per
+                            : normalizedAmount.subtract(runningTotal);
 
-            runningTotal = runningTotal.add(shareAmount);
-            shares.add(new ShareDTO(m.getMembershipId(), shareAmount, null));
+                    ExpenseShare es = new ExpenseShare();
+                    es.setExpense(saved);
+                    es.setMembership(m);
+                    es.setShareAmount(shareAmount);
+                    es.setShareRatio(null);
+                    expenseShareRepository.save(es);
+
+                    runningTotal = runningTotal.add(shareAmount);
+                    shares.add(new ShareDTO(m.getMembershipId(), shareAmount, null));
+                }
+            }
+            case EXACT -> {
+                if (splitValues == null || splitValues.isEmpty()) {
+                    throw new IllegalArgumentException("splitValues required for EXACT mode");
+                }
+                BigDecimal sum = splitValues.values().stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+                if (sum.setScale(2, RoundingMode.HALF_UP).compareTo(normalizedAmount) != 0) {
+                    throw new IllegalArgumentException("EXACT split values must sum to the expense amount");
+                }
+                for (Membership m : participants) {
+                    BigDecimal val = splitValues.getOrDefault(m.getMembershipId(), BigDecimal.ZERO)
+                            .setScale(2, RoundingMode.HALF_UP);
+                    ExpenseShare es = new ExpenseShare();
+                    es.setExpense(saved);
+                    es.setMembership(m);
+                    es.setShareAmount(val);
+                    es.setShareRatio(null);
+                    expenseShareRepository.save(es);
+                    shares.add(new ShareDTO(m.getMembershipId(), val, null));
+                }
+            }
+            case PERCENTAGE -> {
+                if (splitValues == null || splitValues.isEmpty()) {
+                    throw new IllegalArgumentException("splitValues required for PERCENTAGE mode");
+                }
+                BigDecimal sum = splitValues.values().stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+                if (sum.setScale(2, RoundingMode.HALF_UP).compareTo(new BigDecimal("100.00")) != 0) {
+                    throw new IllegalArgumentException("PERCENTAGE split values must sum to 100");
+                }
+                for (Membership m : participants) {
+                    BigDecimal pct = splitValues.getOrDefault(m.getMembershipId(), BigDecimal.ZERO);
+                    BigDecimal shareAmount = normalizedAmount.multiply(pct)
+                            .divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
+                    BigDecimal ratio = pct.divide(new BigDecimal("100"), 4, RoundingMode.HALF_UP);
+                    ExpenseShare es = new ExpenseShare();
+                    es.setExpense(saved);
+                    es.setMembership(m);
+                    es.setShareAmount(shareAmount);
+                    es.setShareRatio(ratio);
+                    expenseShareRepository.save(es);
+                    shares.add(new ShareDTO(m.getMembershipId(), shareAmount, ratio));
+                }
+            }
+            case SHARES -> {
+                if (splitValues == null || splitValues.isEmpty()) {
+                    throw new IllegalArgumentException("splitValues required for SHARES mode");
+                }
+                BigDecimal totalUnits = splitValues.values().stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+                if (totalUnits.compareTo(BigDecimal.ZERO) <= 0) {
+                    throw new IllegalArgumentException("Total shares must be greater than 0");
+                }
+                for (Membership m : participants) {
+                    BigDecimal units = splitValues.getOrDefault(m.getMembershipId(), BigDecimal.ZERO);
+                    BigDecimal shareAmount = normalizedAmount.multiply(units)
+                            .divide(totalUnits, 2, RoundingMode.HALF_UP);
+                    BigDecimal ratio = units.divide(totalUnits, 4, RoundingMode.HALF_UP);
+                    ExpenseShare es = new ExpenseShare();
+                    es.setExpense(saved);
+                    es.setMembership(m);
+                    es.setShareAmount(shareAmount);
+                    es.setShareRatio(ratio);
+                    expenseShareRepository.save(es);
+                    shares.add(new ShareDTO(m.getMembershipId(), shareAmount, ratio));
+                }
+            }
         }
 
         return new ExpenseDTO(
@@ -169,6 +260,7 @@ public class ExpenseService {
                 saved.getDescription(),
                 saved.getOccurredAt(),
                 saved.getCreatedAt(),
+                saved.getSplitMode(),
                 shares);
     }
 
@@ -214,6 +306,7 @@ public class ExpenseService {
                     expense.getDescription(),
                     expense.getOccurredAt(),
                     expense.getCreatedAt(),
+                    expense.getSplitMode(),
                     shares);
         }).toList();
     }

@@ -16,7 +16,7 @@ import GroupSharePage from "./pages/GroupDetail/GroupSharePage";
 function App() {
   return (
     <div className="min-h-screen bg-gray-50 flex justify-center">
-      <div className="w-full max-w-[500px] min-h-screen bg-white shadow-md overflow-x-hidden flex flex-col">
+      <div className="w-full max-w-xl lg:max-w-2xl min-h-screen bg-white shadow-md overflow-x-hidden flex flex-col">
         <Header />
         <main className="flex-1">
           <Routes>

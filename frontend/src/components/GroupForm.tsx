@@ -25,7 +25,7 @@ export default function GroupForm({ onSubmit }: GroupFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5 p-4">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-6 p-6 lg:p-8">
       <LabeledInputBig
         id="group-name"
         label="Group Name"
@@ -44,7 +44,7 @@ export default function GroupForm({ onSubmit }: GroupFormProps) {
         onChange={setMembers}
       />
 
-      <div className="flex justify-center pt-8">
+      <div className="flex flex-col items-center gap-3 mt-6">
         <PrimaryButton label="Create Group" />
       </div>
     </form>

@@ -14,6 +14,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -28,6 +29,10 @@ public class Settlement {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "settlement_id")
     private Long settlementId;
+
+    @Version
+    @Column(name = "version", nullable = false)
+    private Long version;
 
     @NotNull
     @Positive

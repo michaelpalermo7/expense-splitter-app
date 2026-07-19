@@ -12,6 +12,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import jakarta.persistence.Version;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotNull;
@@ -26,6 +27,10 @@ public class ExpenseShare {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "expense_share_id")
     private Long expenseShareId;
+
+    @Version
+    @Column(name = "version", nullable = false)
+    private Long version;
 
     @NotNull
     @DecimalMin(value = "0.00", inclusive = true, message = "Share amount must be >= 0")

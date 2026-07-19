@@ -20,6 +20,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotNull;
@@ -34,6 +35,10 @@ public class Expense {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "expense_id")
     private Long expenseId;
+
+    @Version
+    @Column(name = "version", nullable = false)
+    private Long version;
 
     @NotNull
     @DecimalMin(value = "0.00", inclusive = true)
@@ -52,6 +57,11 @@ public class Expense {
 
     @Column(columnDefinition = "text")
     private String description;
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(name = "split_mode", nullable = false, length = 20)
+    private SplitMode splitMode = SplitMode.EQUAL;
 
     @NotNull
     @Column(name = "occurred_at", nullable = false, columnDefinition = "timestamptz")
@@ -142,5 +152,13 @@ public class Expense {
 
     public Set<ExpenseShare> getShares() {
         return shares;
+    }
+
+    public SplitMode getSplitMode() {
+        return splitMode;
+    }
+
+    public void setSplitMode(SplitMode splitMode) {
+        this.splitMode = splitMode;
     }
 }

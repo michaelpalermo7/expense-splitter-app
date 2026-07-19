@@ -10,12 +10,19 @@ import type { Group, GroupMember } from "../types";
 export function useGroupInfo(token?: string) {
   const [group, setGroup] = useState<Group>();
   const [members, setMembers] = useState<GroupMember[]>([]);
+  const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
     if (!token) return;
 
-    getGroupByToken(token).then((res) => setGroup(res.data));
-    getGroupMembersByToken(token).then((res) => setMembers(res.data));
+    getGroupByToken(token)
+      .then((res) => setGroup(res.data))
+      .catch((e) => {
+        if (e?.response?.status === 404) setNotFound(true);
+      });
+    getGroupMembersByToken(token)
+      .then((res) => setMembers(res.data))
+      .catch(() => {});
   }, [token]);
 
   const deleteMember = async (membershipId: number) => {
@@ -24,5 +31,5 @@ export function useGroupInfo(token?: string) {
     setMembers((cur) => cur.filter((m) => m.membershipId !== membershipId));
   };
 
-  return { group, members, deleteMember };
+  return { group, members, notFound, deleteMember };
 }

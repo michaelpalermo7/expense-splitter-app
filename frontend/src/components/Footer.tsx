@@ -1,7 +1,7 @@
 const Footer = () => {
   return (
     <footer className="w-full bg-[#000000] text-white pt-8 pb-6 text-xs">
-      <div className="max-w-[480px] mx-auto grid grid-cols-2 gap-y-2 px-6">
+      <div className="w-full grid grid-cols-2 gap-y-2 px-6">
         <a href="#" className="text-xs tracking-wide opacity-90 font-normal">
           FAQ
         </a>

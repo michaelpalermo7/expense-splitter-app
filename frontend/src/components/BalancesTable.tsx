@@ -19,8 +19,8 @@ const BalancesList = ({ balances, nameById }: BalancesListProps) => {
       {balances.map((b) => {
         const isNegative = b.balance < 0;
         const pillClass = isNegative
-          ? "bg-red-50 text-red-700"
-          : "bg-green-50 text-green-700";
+          ? "text-red-700"
+          : "text-green-700";
 
         return (
           <div

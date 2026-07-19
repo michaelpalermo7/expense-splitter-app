@@ -11,8 +11,7 @@ export default function TextBlock({ children }: TextBlockProps) {
         text-md
         leading-relaxed
         text-black
-        max-w-sm
-        mx-auto
+        w-full
       "
     >
       {children}
